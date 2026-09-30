@@ -1,0 +1,15 @@
+.git
+.codegraph
+.gomod
+.modcache
+.vscode
+bin
+.env
+*.log
+*.tmp
+*.bak
+*.go.*
+Dockerfile*
+docker-compose*.yml
+README.md
+scripts

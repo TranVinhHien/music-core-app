@@ -1,0 +1,30 @@
+# Local Environment Configuration
+.env
+.env.*
+app.development.yaml
+app.development.yml
+
+# Go compilation & caching
+.gomod/
+.modcache/
+bin/
+*.exe
+*.test
+*.prof
+
+# IDEs
+.vscode/
+.idea/
+
+# Logging and temp
+*.log
+*.tmp
+*.bak
+*.go.*
+
+# Exclude python and tests
+python/
+test/
+venv/
+.venv/
+__pycache__/

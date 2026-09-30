@@ -1,0 +1,28 @@
+meta {
+  name: Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "vinhhien12z@gmail.com",
+    "password": "123456",
+    "full_name": "Hien Tran",
+    "avatar_url":"",
+    "phone_number":"",
+    "current_lat":1.1,
+    "current_lng":1.1,
+    "home_address":"214 dinh bo linh"
+  }
+}
+
+vars:pre-request {
+  base_url: http://localhost:8080
+}
