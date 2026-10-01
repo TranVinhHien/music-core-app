@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -117,7 +118,11 @@ func LoadConfig(path string) (*Config, error) {
 }
 
 func Load() error {
-	conf, err := LoadConfig("app.development.yaml")
+	configPath := os.Getenv("CONFIG_FILE")
+	if configPath == "" {
+		configPath = "app.development.yaml"
+	}
+	conf, err := LoadConfig(configPath)
 	if err != nil {
 		return err
 	}

@@ -18,7 +18,6 @@ WORKDIR /app
 
 COPY --from=builder /out/server ./server
 COPY --chown=app:app public ./public
-COPY --chown=app:app app.development.yaml ./app.development.yaml
 
 USER app
 
