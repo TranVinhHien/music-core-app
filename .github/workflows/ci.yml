@@ -1,0 +1,31 @@
+name: Music Core API CI
+on:
+  push:
+    branches: [main, staging, dev]
+  pull_request:
+    branches: [main, staging, dev]
+concurrency:
+  group: music-core-api-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    name: Unit and integration tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: music-core-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: music-core-api/go.mod
+          cache: true
+          cache-dependency-path: music-core-api/go.sum
+      - name: Download locked dependencies
+        run: go mod download
+      - name: Verify dependencies
+        run: go mod verify
+      - name: Unit tests
+        run: go test ./... -count=1
+      - name: Integration tests
+        run: go test -tags=integration ./internal/integration -count=1 -timeout=10m
