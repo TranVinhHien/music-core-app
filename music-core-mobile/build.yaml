@@ -1,0 +1,16 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          data_class_to_companions: false
+        generate_for:
+          include:
+            - lib/features/tasks/data/**
+      freezed:
+        options:
+          format: true
+        generate_for:
+          include:
+            - lib/features/**/domain/**
+            - lib/features/**/presentation/**
