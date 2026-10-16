@@ -1,1 +1,0 @@
-làm cổng vào API, xác thực, rate limit, định tuyến.
