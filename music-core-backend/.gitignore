@@ -12,11 +12,26 @@
 *.*.local.yaml
 *.*.local.yml
 
-# Production & secret configs
-**/app.development.yaml
-**/gateway.development.yaml
-**/app.production.yaml
-**/gateway.production.yaml
+# Active development & production configs with secrets (applies to all subdirectories)
+app.development.yaml
+app.development.yml
+gateway.development.yaml
+gateway.development.yml
+app.production.yaml
+app.production.yml
+gateway.production.yaml
+gateway.production.yml
+
+# Generic pattern for any current or future microservice configs
+*.development.yaml
+*.development.yml
+*.production.yaml
+*.production.yml
+
+# Never ignore example template files
+!*.example.yaml
+!*.example.yml
+
 # ==============================================================================
 # Go Build Artifacts & Binaries
 # ==============================================================================
