@@ -1,0 +1,65 @@
+app:
+  name: "music-api-gateway"
+  version: "v1.0.0"
+
+http_server:
+  host: "0.0.0.0"
+  port: 8000
+  allow_origins:
+    - "*"
+  allow_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "PATCH"
+    - "DELETE"
+    - "OPTIONS"
+  allow_headers:
+    - "Origin"
+    - "Content-Type"
+    - "Accept"
+    - "Authorization"
+    - "X-Request-ID"
+    - "X-User-ID"
+  mode: "debug"
+  log_level: "debug"
+
+logger:
+  level: "debug"
+  pretty: true
+
+gateway:
+  routes:
+    # User Service (NestJS)
+    - prefix: "/api/v1/users"
+      target: "http://localhost:3001"
+      auth_required: true
+
+    - prefix: "/api/v1/auth"
+      target: "http://localhost:8080"
+      auth_required: false
+
+    # Catalog Service (NestJS)
+    - prefix: "/api/v1/catalog"
+      target: "http://localhost:3002"
+      auth_required: false
+
+    # Library Service (NestJS)
+    - prefix: "/api/v1/library"
+      target: "http://localhost:3003"
+      auth_required: true
+
+    # Listening Event Service (Go)
+    - prefix: "/api/v1/listening-events"
+      target: "http://localhost:3004"
+      auth_required: true
+
+    # Audio Service (Go)
+    - prefix: "/api/v1/audio"
+      target: "http://localhost:3005"
+      auth_required: true
+
+    # Core API Service (Go Monolith / Uploads / Existing Core endpoints)
+    - prefix: "/api/v1/core"
+      target: "http://localhost:8080"
+      auth_required: false
