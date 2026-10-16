@@ -4,12 +4,20 @@ Service API Gateway đóng vai trò là single entry point cho các client (Flut
 
 ## 1. Trách nhiệm chính
 
-- **Reverse Proxy & Routing:** Tiếp nhận request từ client và định tuyến đến các microservices tương ứng (`music-user-service`, `music-catalog-service`, `music-library-service`, `music-listening-event-service`, `music-audio-service`, `music-core-api`).
-- **Request ID Tracking:** Tự động sinh hoặc forward header `X-Request-ID` cho mọi request.
-- **Structured Logging:** Ghi log chi tiết (IP, method, path, status, latency, request ID) bằng zerolog.
-- **CORS Handling:** Cấu hình CORS tập trung tại Gateway.
-- **Authentication & Authorization (Placeholder):** Chuẩn bị sẵn middleware xác thực ở tầng gateway. Hiện tại đang ở chế độ passthrough (chưa chặn request, cho phép các service downstream hoặc giai đoạn tiếp theo xử lý auth).
-- **Error Handling:** Trả về chuẩn phản hồi JSON và xử lý `502 Bad Gateway` khi upstream service không khả dụng.
+- **Reverse Proxy & Routing:** Tiếp nhận request từ client và định tuyến đến các microservices tương ứng (`music-user-service`, `music-catalog-service`, `music-library-service`, `music-listening-event-service`, `music-audio-service`).
+- **Xác thực Token tập trung & Stateless:**
+  - Token JWT chứa `user_id`, `email`, và mảng `user_roles` (ví dụ: `["user"]` hoặc `["admin"]`).
+  - API Gateway giải mã và kiểm tra tính hợp lệ của token mà **không cần gọi DB hay gọi sang user-service** trên từng request.
+- **Phân quyền trên từng API (Role-Based Access Control):**
+  - Gateway lấy mảng `user_roles` từ JWT token và đối chiếu với file ma trận quyền [config/permissions.json](config/permissions.json).
+  - Hỗ trợ các pattern: wildcard `*`, prefix `/*`, và path param `:param`.
+  - Trả về `401 Unauthorized` nếu token thiếu/không hợp lệ, hoặc `403 Forbidden` nếu role không có quyền truy cập API.
+- **Context Header Injection:** Tự động inject và forward các header xuống service phía sau:
+  - `X-User-ID`: UUID định danh người dùng.
+  - `X-User-Email`: Email của người dùng.
+  - `X-User-Roles`: Danh sách role phân tách bằng dấu phẩy (vd: `user,admin`).
+  - `X-Request-ID`: Mã định danh request duy nhất.
+- **Structured Logging & CORS:** Ghi log chi tiết và xử lý CORS tập trung.
 
 ## 2. Cấu trúc thư mục
 
@@ -19,81 +27,80 @@ music-api-gateway/
 │   └── main.go                  # Entry point chạy standalone gateway
 ├── config/
 │   ├── config.go                # Struct và loader cấu hình (Viper)
-│   └── gateway.development.yaml # Cấu hình mẫu cho môi trường development
+│   ├── gateway.development.yaml # Cấu hình routes và server
+│   └── permissions.json         # Ma trận phân quyền theo từng role và method/path
 ├── middlewares/
-│   ├── auth.go                  # Auth middleware (placeholder passthrough)
+│   ├── auth.go                  # Xác thực JWT stateless & phân quyền API
 │   ├── logger.go                # Structured logging middleware (zerolog)
 │   └── request_id.go            # Request ID header tracking
+├── permissions/
+│   └── evaluator.go             # Engine kiểm tra quyền theo role & pattern (*, /*, :param)
 ├── proxy.go                     # Reverse proxy handler (httputil.ReverseProxy)
 ├── server.go                    # Gin engine server, routing, health check, CORS
 └── README.md
 ```
 
-## 3. Cấu hình định tuyến (gateway.development.yaml)
+## 3. Ma trận phân quyền (permissions.json)
 
-```yaml
-gateway:
-  routes:
-    # User Service (NestJS)
-    - prefix: "/api/v1/users"
-      target: "http://localhost:3001"
-      auth_required: true
-
-    - prefix: "/api/v1/auth"
-      target: "http://localhost:3001"
-      auth_required: false
-
-    # Catalog Service (NestJS)
-    - prefix: "/api/v1/catalog"
-      target: "http://localhost:3002"
-      auth_required: false
-
-    # Library Service (NestJS)
-    - prefix: "/api/v1/library"
-      target: "http://localhost:3003"
-      auth_required: true
-
-    # Listening Event Service (Go)
-    - prefix: "/api/v1/listening-events"
-      target: "http://localhost:3004"
-      auth_required: true
-
-    # Audio Service (Go)
-    - prefix: "/api/v1/audio"
-      target: "http://localhost:3005"
-      auth_required: true
-
-    # Core API Monolith
-    - prefix: "/api/v1/core"
-      target: "http://localhost:8080"
-      auth_required: false
+```json
+{
+  "roles": [
+    {
+      "role": "admin",
+      "permissions": {
+        "GET": ["*"],
+        "POST": ["*"],
+        "PUT": ["*"],
+        "DELETE": ["*"],
+        "PATCH": ["*"]
+      }
+    },
+    {
+      "role": "user",
+      "permissions": {
+        "GET": [
+          "/health",
+          "/swagger/*",
+          "/api/v1/auth/me",
+          "/api/v1/users/me",
+          "/api/v1/catalog/*",
+          "/api/v1/library/*",
+          "/api/v1/audio/*"
+        ],
+        "POST": [
+          "/api/v1/auth/logout",
+          "/api/v1/library/*",
+          "/api/v1/listening-events/*",
+          "/api/v1/upload"
+        ],
+        "PUT": [
+          "/api/v1/auth/me",
+          "/api/v1/auth/me/password",
+          "/api/v1/users/me",
+          "/api/v1/library/*"
+        ],
+        "DELETE": [
+          "/api/v1/library/*"
+        ]
+      }
+    }
+  ]
+}
 ```
 
 ## 4. Cách chạy Gateway
 
-Từ thư mục `music-core-api`:
+Từ thư mục `music-api-gateway`:
 
 ```bash
-# Chạy trực tiếp qua Makefile
-make run-gateway
+# Tải dependencies nếu cần
+go mod tidy
 
-# Hoặc chạy trực tiếp với go
-go run ./cmd/gateway/main.go
-
-# Hoặc chạy từ thư mục music-api-gateway
-go run ./music-api-gateway/cmd/main.go -config=./music-api-gateway/config/gateway.development.yaml
+# Chạy standalone gateway
+go run ./cmd/main.go -config=./config/gateway.development.yaml
 ```
 
 Kiểm tra health check:
 ```bash
 curl http://localhost:8000/health
-```
-Phản hồi:
-```json
-{
-  "service": "music-api-gateway",
-  "version": "v1.0.0",
-  "status": "OK",
-  "time": "2026-10-16T08:30:00+07:00"
-}
 ```

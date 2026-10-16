@@ -21,6 +21,8 @@ http_server:
     - "Authorization"
     - "X-Request-ID"
     - "X-User-ID"
+    - "X-User-Email"
+    - "X-User-Roles"
   mode: "debug"
   log_level: "debug"
 
@@ -28,38 +30,45 @@ logger:
   level: "debug"
   pretty: true
 
+token:
+  secret: "change-me-to-a-long-random-secret"
+
+permissions:
+  file_path: "./config/permissions.json"
+
 gateway:
   routes:
-    # User Service (NestJS)
-    - prefix: "/api/v1/users"
-      target: "http://localhost:3001"
-      auth_required: true
-
+    # Public Auth routes (login, register, refresh) -> Forwarded to music-user-service
     - prefix: "/api/v1/auth"
       target: "http://localhost:8080"
       auth_required: false
 
-    # Catalog Service (NestJS)
+    # User Profile & Management (Protected) -> Forwarded to music-user-service
+    - prefix: "/api/v1/users"
+      target: "http://localhost:8080"
+      auth_required: true
+
+    # Uploads (Protected) -> Forwarded to music-user-service
+    - prefix: "/api/v1/upload"
+      target: "http://localhost:8080"
+      auth_required: true
+
+    # Catalog Service (Public metadata browsing)
     - prefix: "/api/v1/catalog"
       target: "http://localhost:3002"
       auth_required: false
 
-    # Library Service (NestJS)
+    # Library Service (Personal library / playlists - Protected)
     - prefix: "/api/v1/library"
       target: "http://localhost:3003"
       auth_required: true
 
-    # Listening Event Service (Go)
+    # Listening Event Service (User playback events - Protected)
     - prefix: "/api/v1/listening-events"
       target: "http://localhost:3004"
       auth_required: true
 
-    # Audio Service (Go)
+    # Audio Service (Audio streaming / processing - Protected)
     - prefix: "/api/v1/audio"
       target: "http://localhost:3005"
       auth_required: true
-
-    # Core API Service (Go Monolith / Uploads / Existing Core endpoints)
-    - prefix: "/api/v1/core"
-      target: "http://localhost:8080"
-      auth_required: false

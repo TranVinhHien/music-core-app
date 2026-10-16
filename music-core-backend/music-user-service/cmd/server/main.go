@@ -1,18 +1,21 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 
-	_ "github.com/TranVinhHien/music-core-app/music-core-api/docs"
-	"github.com/TranVinhHien/music-core-app/music-core-api/internal/config"
-	"github.com/TranVinhHien/music-core-app/music-core-api/internal/database"
-	"github.com/TranVinhHien/music-core-app/music-core-api/internal/database/migrations"
-	"github.com/TranVinhHien/music-core-app/music-core-api/internal/handlers"
-	"github.com/TranVinhHien/music-core-app/music-core-api/internal/repository"
-	"github.com/TranVinhHien/music-core-app/music-core-api/internal/router"
-	"github.com/TranVinhHien/music-core-app/music-core-api/internal/services"
+	_ "github.com/TranVinhHien/music-core-app/music-core-backend/music-core-user/docs"
+	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-user/internal/config"
+	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-user/internal/database"
+	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-user/internal/database/migrations"
+	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-user/internal/handlers"
+	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-user/internal/repository"
+	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-user/internal/router"
+	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-user/internal/services"
 )
+
+var confPath = flag.String("config", "", "Path to user service config yaml file")
 
 // @title Plan-Travel API
 // @version 1.0
@@ -32,16 +35,21 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	if err := config.Load(); err != nil {
+	flag.Parse()
+	targetConfig := config.ResolveConfigFile(*confPath)
+	conf, err := config.LoadConfig(targetConfig)
+	if err != nil {
 		log.Fatalf("Invalid configuration: %v", err)
 	}
+	config.App = *conf
+
 
 	// Connect to database
 	database.Connect()
 	defer database.Close()
 
 	db := database.GetDB()
-	err := database.Migrate(db, migrations.FS, ".")
+	err = database.Migrate(db, migrations.FS, ".")
 	if err != nil {
 		fmt.Println("Failed to migrate database", err)
 		return

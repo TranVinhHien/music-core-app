@@ -1,0 +1,47 @@
+{
+  "roles": [
+    {
+      "role": "admin",
+      "permissions": {
+        "GET": [
+          "*"
+        ],
+        "POST": [
+          "*"
+        ],
+        "PUT": [
+          "*"
+        ],
+        "DELETE": [
+          "*"
+        ],
+        "PATCH": [
+          "*"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "permissions": {
+        "GET": [
+          "/api/v1/users/*",
+          "/api/v1/catalog/*",
+          "/api/v1/library/*",
+          "/api/v1/audio/*"
+        ],
+        "POST": [
+          "/api/v1/library/*",
+          "/api/v1/listening-events/*",
+          "/api/v1/upload"
+        ],
+        "PUT": [
+          "/api/v1/users/*",
+          "/api/v1/library/*"
+        ],
+        "DELETE": [
+          "/api/v1/library/*"
+        ]
+      }
+    }
+  ]
+}

@@ -8,19 +8,25 @@ import (
 
 	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-gateway/config"
 	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-gateway/middlewares"
+	"github.com/TranVinhHien/music-core-app/music-core-backend/music-core-gateway/permissions"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
 
 // Server encapsulates the Gateway engine, configuration, and routing logic.
 type Server struct {
-	cfg    *config.Config
-	logger *zerolog.Logger
-	engine *gin.Engine
+	cfg           *config.Config
+	logger        *zerolog.Logger
+	engine        *gin.Engine
+	permEvaluator *permissions.Evaluator
 }
 
 // NewServer initializes the Gin engine, registers middleware, and configures routes.
-func NewServer(cfg *config.Config, logger *zerolog.Logger) *Server {
+func NewServer(
+	cfg *config.Config,
+	logger *zerolog.Logger,
+	permEvaluator *permissions.Evaluator,
+) *Server {
 	if cfg.HttpServer.Mode != "" {
 		gin.SetMode(cfg.HttpServer.Mode)
 	}
@@ -39,9 +45,10 @@ func NewServer(cfg *config.Config, logger *zerolog.Logger) *Server {
 	engine.Use(corsMiddleware(cfg))
 
 	s := &Server{
-		cfg:    cfg,
-		logger: logger,
-		engine: engine,
+		cfg:           cfg,
+		logger:        logger,
+		engine:        engine,
+		permEvaluator: permEvaluator,
 	}
 
 	s.setupRoutes()
@@ -59,7 +66,7 @@ func corsMiddleware(cfg *config.Config) gin.HandlerFunc {
 		allowMethods = strings.Join(cfg.HttpServer.AllowMethods, ", ")
 	}
 
-	allowHeaders := "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-ID"
+	allowHeaders := "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-ID, X-User-Email, X-User-Roles"
 	if len(cfg.HttpServer.AllowHeaders) > 0 {
 		allowHeaders = strings.Join(cfg.HttpServer.AllowHeaders, ", ")
 	}
@@ -87,8 +94,8 @@ func (s *Server) setupRoutes() {
 		})
 	})
 
-	// Auth middleware placeholder (as requested: auth check is deferred)
-	authMiddleware := middlewares.AuthMiddleware(s.logger)
+	// Stateless Auth & Permission middleware
+	authMiddleware := middlewares.AuthMiddleware(s.cfg.Token.Secret, s.permEvaluator, s.logger)
 
 	for _, route := range s.cfg.Gateway.Routes {
 		target := route.Target
@@ -112,7 +119,7 @@ func (s *Server) setupRoutes() {
 		if s.logger != nil {
 			authStatus := "public"
 			if route.AuthRequired {
-				authStatus = "protected (placeholder auth)"
+				authStatus = "protected (token & role permissions)"
 			}
 			s.logger.Info().
 				Str("prefix", prefix+"/*").

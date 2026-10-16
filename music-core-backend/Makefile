@@ -1,26 +1,22 @@
-run:
-	go run cmd/server/main.go
-
 run-gateway:
-	go run cmd/gateway/main.go
+	cd music-api-gateway && go run cmd/main.go
 
-test:
-	go test ./...
-
-build:
-	go build -trimpath -o bin/server ./cmd/server
+run-user:
+	cd music-user-service && go run cmd/server/main.go
 
 build-gateway:
-	go build -trimpath -o bin/gateway ./cmd/gateway
+	cd music-api-gateway && go build -trimpath -o bin/gateway ./cmd
 
-docker-build:
-	docker compose build api
+build-user:
+	cd music-user-service && go build -trimpath -o bin/server ./cmd/server
 
-docker-up:
-	docker compose up -d --build
+test-gateway:
+	cd music-api-gateway && go test -v ./...
 
-docker-down:
-	docker compose down
+test-user:
+	cd music-user-service && go test -v ./...
 
-docker-logs:
-	docker compose logs -f api
+test-common:
+	cd music-common && go test -v ./...
+
+test-all: test-common test-gateway test-user
