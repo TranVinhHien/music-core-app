@@ -13,9 +13,10 @@
 *.*.local.yml
 
 # Production & secret configs
-app.production.yaml
-gateway.production.yaml
-
+**/app.development.yaml
+**/gateway.development.yaml
+**/app.production.yaml
+**/gateway.production.yaml
 # ==============================================================================
 # Go Build Artifacts & Binaries
 # ==============================================================================
