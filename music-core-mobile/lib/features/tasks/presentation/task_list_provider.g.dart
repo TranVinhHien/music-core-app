@@ -50,4 +50,4 @@ final class TaskListProvider
   }
 }
 
-String _$taskListHash() => r'28a8de0b31d46f73d317793a9e1b93cef8a66bec';
+String _$taskListHash() => r'0a088233b8570aba5e9745c9e613530e13da0b0b';

@@ -4,23 +4,34 @@ final class AppConfig {
     required this.applicationName,
     required this.databaseName,
     required this.enableDiagnostics,
+    this.apiBaseUrl = 'http://localhost:8000',
   });
 
-  const AppConfig.dev()
-    : this(
-        applicationName: '(DEV) Clean Architecture Example',
-        databaseName: 'flutter_clean_architecture_example_dev',
-        enableDiagnostics: true,
-      );
+  static const String _defaultDevUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://192.168.1.17:8000',
+  );
 
-  const AppConfig.prod()
-    : this(
-        applicationName: 'Clean Architecture Example',
-        databaseName: 'flutter_clean_architecture_example_prod',
-        enableDiagnostics: false,
-      );
+  const AppConfig.dev({
+    String? apiBaseUrl,
+  }) : this(
+         applicationName: '(DEV) Music Core',
+         databaseName: 'music_core_app_dev',
+         enableDiagnostics: true,
+         apiBaseUrl: apiBaseUrl ?? _defaultDevUrl,
+       );
+
+  const AppConfig.prod({
+    String? apiBaseUrl,
+  }) : this(
+         applicationName: 'Music Core',
+         databaseName: 'music_core_app_prod',
+         enableDiagnostics: false,
+         apiBaseUrl: apiBaseUrl ?? 'http://192.168.1.17:8000',
+       );
 
   final String applicationName;
   final String databaseName;
   final bool enableDiagnostics;
+  final String apiBaseUrl;
 }

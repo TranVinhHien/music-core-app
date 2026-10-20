@@ -7,6 +7,7 @@ targets:
         generate_for:
           include:
             - lib/features/tasks/data/**
+            - lib/core/database/**
       freezed:
         options:
           format: true

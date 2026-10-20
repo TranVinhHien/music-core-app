@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_architecture_example/app/dependencies.dart';
 import 'package:flutter_clean_architecture_example/core/result.dart';
-import 'package:flutter_clean_architecture_example/features/auth/domain/entities/demo_account.dart';
-import 'package:flutter_clean_architecture_example/features/auth/domain/entities/demo_accounts.dart';
+import 'package:flutter_clean_architecture_example/features/auth/domain/entities/auth_session.dart';
+import 'package:flutter_clean_architecture_example/features/auth/domain/entities/user_entity.dart';
 import 'package:flutter_clean_architecture_example/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_clean_architecture_example/features/auth/presentation/auth_controller.dart';
 import 'package:flutter_clean_architecture_example/features/tasks/domain/entities/task_filter.dart';
@@ -102,7 +102,7 @@ void main() {
       tasks: [
         TaskItem(
           id: 'task-1',
-          ownerId: DemoAccounts.alice.id,
+          ownerId: _testUser.id,
           title: 'Pending task',
           isCompleted: false,
           updatedAt: DateTime.utc(2026),
@@ -182,7 +182,7 @@ void main() {
     await tester.tap(find.byKey(TaskWidgetKeys.logoutButton));
     await tester.pumpAndSettle();
 
-    expect(find.text(DemoAccounts.alice.email), findsOneWidget);
+    expect(find.text(_testUser.email), findsOneWidget);
     expect(find.text('Local data is temporarily unavailable.'), findsOneWidget);
   });
 
@@ -208,6 +208,17 @@ void main() {
   });
 }
 
+const _testUser = UserEntity(
+  id: 'user-alice',
+  email: 'alice@example.com',
+  fullName: 'Alice',
+);
+
+const _testSession = AuthSession(
+  user: _testUser,
+  accessToken: 'mock_token',
+);
+
 Future<void> _pumpTasks(
   WidgetTester tester,
   _FakeTaskRepository repository, {
@@ -219,7 +230,7 @@ Future<void> _pumpTasks(
       overrides: [
         if (authRepository == null)
           authControllerProvider.overrideWithBuild(
-            (ref, notifier) async => DemoAccounts.alice,
+            (ref, notifier) async => _testSession,
           )
         else
           authRepositoryProvider.overrideWithValue(authRepository),
@@ -306,20 +317,35 @@ final class _FailingSignOutAuthRepository implements AuthRepository {
   const _FailingSignOutAuthRepository();
 
   @override
-  Future<Result<DemoAccount?>> restoreSession() async =>
-      const ResultOk(DemoAccounts.alice);
+  Future<Result<AuthSession?>> restoreSession() async =>
+      const ResultOk(_testSession);
 
   @override
-  Future<Result<DemoAccount>> signIn(String email, String password) async =>
-      const ResultOk(DemoAccounts.alice);
+  Future<Result<AuthSession>> signIn(String email, String password) async =>
+      const ResultOk(_testSession);
+
+  @override
+  Future<Result<void>> register({
+    required String email,
+    required String password,
+    required String fullName,
+    String? avatarUrl,
+    String? phoneNumber,
+    String? homeAddress,
+  }) async =>
+      const ResultOk(null);
 
   @override
   Future<Result<void>> signOut() async => const ResultError(StorageFailure());
+
+  @override
+  Future<Result<AuthSession>> refreshToken() async =>
+      const ResultError(UnauthorizedFailure('Not implemented'));
 }
 
 TaskItem _task() => TaskItem(
   id: 'task-1',
-  ownerId: DemoAccounts.alice.id,
+  ownerId: _testUser.id,
   title: 'Pending task',
   isCompleted: false,
   updatedAt: DateTime.utc(2026),
