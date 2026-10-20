@@ -1,0 +1,27 @@
+meta {
+  name: Update Playlist
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/api/v1/library/playlists/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: d22b6455-68ff-4047-b243-6d5fd3d1c41b
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Nhạc Chill Cực Phẩm (Updated)",
+    "description": "Cập nhật danh sách phát chill thư giãn",
+    "visibility": "PUBLIC"
+  }
+}

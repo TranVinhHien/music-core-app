@@ -1,0 +1,25 @@
+meta {
+  name: Add Track To Playlist
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/api/v1/library/playlists/:id/tracks
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: d22b6455-68ff-4047-b243-6d5fd3d1c41b
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "trackId": "37f62cc0-a45d-4999-b487-1eb3bdcff183"
+  }
+}

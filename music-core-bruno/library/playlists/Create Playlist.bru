@@ -1,0 +1,24 @@
+meta {
+  name: Create Playlist
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/library/playlists
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Nhạc Chill Mỗi Ngày",
+    "description": "Tuyển tập những bài hát acoustic và ballad nhẹ nhàng",
+    "coverImageUrl": "https://example.com/playlists/chill.jpg",
+    "visibility": "PUBLIC"
+  }
+}

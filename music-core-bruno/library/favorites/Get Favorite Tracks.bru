@@ -1,0 +1,21 @@
+meta {
+  name: Get Favorite Tracks (Loved Tracks)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/v1/library/favorites/tracks?page=1&limit=10&order=desc
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  limit: 10
+  order: desc
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

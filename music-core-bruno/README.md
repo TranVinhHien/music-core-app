@@ -12,6 +12,9 @@ Bộ sưu tập kiểm thử API cho hệ thống microservices Music Core App t
   - `albums/`: CRUD Album và quan hệ nghệ sĩ.
   - `tracks/`: CRUD Bài hát, liên kết nghệ sĩ, thể loại, nguồn nhạc.
   - `genres/`: CRUD Thể loại âm nhạc theo dạng cây cha-con.
+- `library/`: Quản lý thư viện cá nhân người dùng (Library Service).
+  - `playlists/`: CRUD Playlist, thêm/xóa bài hát vào playlist, tự động enrich metadata từ Catalog.
+  - `favorites/`: Thêm/xóa bài hát yêu thích, lấy danh sách kèm metadata từ Catalog.
 
 ## Hướng dẫn sử dụng
 
@@ -20,4 +23,5 @@ Bộ sưu tập kiểm thử API cho hệ thống microservices Music Core App t
 3. Cấu hình biến môi trường (`environments/Local.bru`):
    - `base_url`: `http://localhost:8000` (URL qua API Gateway).
    - `catalog_direct_url`: `http://localhost:3002` (URL kết nối trực tiếp Catalog Service).
+   - `library_direct_url`: `http://localhost:3003` (URL kết nối trực tiếp Library Service).
    - `token`: Bearer access token (lấy từ request login trong thư mục `auth`).
