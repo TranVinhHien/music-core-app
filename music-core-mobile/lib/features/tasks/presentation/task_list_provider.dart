@@ -10,7 +10,7 @@ part 'task_list_provider.g.dart';
 /// Exposes the account-scoped task stream to the task view.
 @riverpod
 Stream<List<TaskItem>> taskList(Ref ref) async* {
-  final accountId = ref.watch(authControllerProvider).value?.id;
+  final accountId = ref.watch(authControllerProvider).value?.user.id;
   if (accountId == null) return;
 
   final filter = ref.watch(taskFilterControllerProvider);

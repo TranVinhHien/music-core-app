@@ -15,7 +15,9 @@ class App extends ConsumerWidget {
     final config = ref.watch(appConfigProvider);
     return MaterialApp.router(
       onGenerateTitle: (context) => config.applicationName,
-      theme: appTheme(),
+      theme: appLightTheme(),
+      darkTheme: appDarkTheme(),
+      themeMode: ThemeMode.dark, // Default to Dark mode for music app
       routerConfig: ref.watch(appRouterProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

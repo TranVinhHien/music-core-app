@@ -1,14 +1,27 @@
 import '../../../../core/result.dart';
-import '../entities/demo_account.dart';
+import '../entities/auth_session.dart';
 
-/// Source of truth for the current Demo account session.
+/// Contract for authentication operations in the domain layer.
 abstract interface class AuthRepository {
-  /// Restores the last account, or returns null when no session exists.
-  Future<Result<DemoAccount?>> restoreSession();
+  /// Restores the last authenticated session, or returns null when not logged in.
+  Future<Result<AuthSession?>> restoreSession();
 
-  /// Signs in with one of the public Demo accounts.
-  Future<Result<DemoAccount>> signIn(String email, String password);
+  /// Authenticates with email and password via API Gateway.
+  Future<Result<AuthSession>> signIn(String email, String password);
 
-  /// Ends the current local session without deleting account data.
+  /// Registers a new user account.
+  Future<Result<void>> register({
+    required String email,
+    required String password,
+    required String fullName,
+    String? avatarUrl,
+    String? phoneNumber,
+    String? homeAddress,
+  });
+
+  /// Signs out and clears local session.
   Future<Result<void>> signOut();
+
+  /// Refreshes the session using the saved refresh token.
+  Future<Result<AuthSession>> refreshToken();
 }

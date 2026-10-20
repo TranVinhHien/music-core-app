@@ -1,4 +1,4 @@
 import 'app/app_config.dart';
 import 'app/bootstrap.dart';
 
-void main() => bootstrap(const AppConfig.prod());
+Future<void> main() async => await bootstrap(const AppConfig.prod());

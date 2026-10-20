@@ -8,15 +8,15 @@ part of 'auth_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Owns the app-wide active Demo account and its session commands.
+/// Owns the app-wide authenticated user session and authentication actions.
 
 @ProviderFor(AuthController)
 final authControllerProvider = AuthControllerProvider._();
 
-/// Owns the app-wide active Demo account and its session commands.
+/// Owns the app-wide authenticated user session and authentication actions.
 final class AuthControllerProvider
-    extends $AsyncNotifierProvider<AuthController, DemoAccount?> {
-  /// Owns the app-wide active Demo account and its session commands.
+    extends $AsyncNotifierProvider<AuthController, AuthSession?> {
+  /// Owns the app-wide authenticated user session and authentication actions.
   AuthControllerProvider._()
     : super(
         from: null,
@@ -36,21 +36,21 @@ final class AuthControllerProvider
   AuthController create() => AuthController();
 }
 
-String _$authControllerHash() => r'5882e231ddace1274ff58b5e74018380d329aa17';
+String _$authControllerHash() => r'324761b85b79f49ccfe9b433ea04642046b9c76c';
 
-/// Owns the app-wide active Demo account and its session commands.
+/// Owns the app-wide authenticated user session and authentication actions.
 
-abstract class _$AuthController extends $AsyncNotifier<DemoAccount?> {
-  FutureOr<DemoAccount?> build();
+abstract class _$AuthController extends $AsyncNotifier<AuthSession?> {
+  FutureOr<AuthSession?> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<DemoAccount?>, DemoAccount?>;
+    final ref = this.ref as $Ref<AsyncValue<AuthSession?>, AuthSession?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<DemoAccount?>, DemoAccount?>,
-              AsyncValue<DemoAccount?>,
+              AnyNotifier<AsyncValue<AuthSession?>, AuthSession?>,
+              AsyncValue<AuthSession?>,
               Object?,
               Object?
             >;

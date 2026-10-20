@@ -51,6 +51,7 @@ model Track {
   trackNumber Int?          @map("track_number")
   discNumber  Int?          @map("disc_number")
   releaseDate DateTime?     @map("release_date") @db.Date
+  coverImageUrl String?     @map("cover_image_url") @db.Text
   fileUrl     String?       @map("file_url") @db.Text
   status      String        @default("ACTIVE") @db.VarChar(20)
   createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz()

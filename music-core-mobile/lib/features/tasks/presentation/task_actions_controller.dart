@@ -48,7 +48,7 @@ class TaskActionsController extends _$TaskActionsController {
     );
   }
 
-  String? get _accountId => ref.read(authControllerProvider).value?.id;
+  String? get _accountId => ref.read(authControllerProvider).value?.user.id;
 
   Future<void> _runTitleMutation(
     String rawTitle,

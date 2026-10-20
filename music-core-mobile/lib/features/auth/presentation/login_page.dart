@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../l10n/app_localizations.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../l10n/app_localizations_resolver.dart';
-import '../domain/entities/demo_accounts.dart';
 import 'auth_controller.dart';
 import 'auth_failure_message.dart';
 import 'auth_widget_keys.dart';
 
-/// Signs in to one of the public local Demo accounts.
+/// Signs in to an account via API Gateway.
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
@@ -20,6 +22,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -31,77 +34,123 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final localizations = appLocalizationsOf(context);
+    final isLoading = ref.watch(
+      authControllerProvider.select((state) => state.isLoading),
+    );
 
     return Scaffold(
-      appBar: AppBar(title: Text(localizations.loginTitle)),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    localizations.loginSubtitle,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  TextFormField(
-                    key: AuthWidgetKeys.loginEmail,
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: localizations.emailLabel,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: AppSpacing.paddingScreenHorizontal,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Icon(
+                      Icons.music_note_rounded,
+                      size: 56,
+                      color: AppColors.primary,
                     ),
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? localizations.emailRequired
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    key: AuthWidgetKeys.loginPassword,
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: localizations.passwordLabel,
-                    ),
-                    obscureText: true,
-                    onFieldSubmitted: (_) => _submit(),
-                    validator: (value) => value == null || value.isEmpty
-                        ? localizations.passwordRequired
-                        : null,
-                  ),
-                  const SizedBox(height: 24),
-                  _LoginButton(
-                    localizations: localizations,
-                    onPressed: _submit,
-                  ),
-                  const SizedBox(height: 24),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            localizations.demoCredentials,
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${DemoAccounts.alice.email} / ${DemoAccounts.password}',
-                          ),
-                          Text(
-                            '${DemoAccounts.bob.email} / ${DemoAccounts.password}',
-                          ),
-                        ],
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'Music Core',
+                      style: AppTypography.display.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: AppSpacing.xs),
+                    const Text(
+                      'Đăng nhập để tiếp tục trải nghiệm âm nhạc',
+                      style: AppTypography.secondaryText,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+                    TextFormField(
+                      key: AuthWidgetKeys.loginEmail,
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: localizations.emailLabel,
+                        hintText: 'name@example.com',
+                        prefixIcon: const Icon(Icons.mail_outline),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return localizations.emailRequired;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    TextFormField(
+                      key: AuthWidgetKeys.loginPassword,
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: localizations.passwordLabel,
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                      obscureText: _obscurePassword,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _submit(),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return localizations.passwordRequired;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    ElevatedButton(
+                      key: AuthWidgetKeys.loginButton,
+                      onPressed: isLoading ? null : _submit,
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(localizations.loginButton),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          'Chưa có tài khoản? ',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => context.go('/register'),
+                          child: const Text('Đăng ký ngay'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -114,39 +163,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (ref.read(authControllerProvider).isLoading) return;
     final formState = _formKey.currentState;
     if (formState?.validate() != true) return;
-    final failure = await ref
-        .read(authControllerProvider.notifier)
-        .signIn(_emailController.text, _passwordController.text);
+
+    final failure = await ref.read(authControllerProvider.notifier).signIn(
+          _emailController.text,
+          _passwordController.text,
+        );
+
     if (!mounted || failure == null) return;
     final localizations = appLocalizationsOf(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(authFailureMessage(failure, localizations))),
-    );
-  }
-}
-
-class _LoginButton extends ConsumerWidget {
-  const _LoginButton({required this.localizations, required this.onPressed});
-
-  final AppLocalizations localizations;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isLoading = ref.watch(
-      authControllerProvider.select((state) => state.isLoading),
-    );
-
-    return FilledButton(
-      key: AuthWidgetKeys.loginButton,
-      onPressed: isLoading ? null : onPressed,
-      child: isLoading
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Text(localizations.loginButton),
+      SnackBar(
+        content: Text(authFailureMessage(failure, localizations)),
+        backgroundColor: AppColors.error,
+      ),
     );
   }
 }

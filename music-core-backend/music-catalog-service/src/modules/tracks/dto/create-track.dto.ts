@@ -88,6 +88,11 @@ export class CreateTrackDto {
   @IsDateString()
   releaseDate?: string;
 
+  @ApiPropertyOptional({ description: 'Track cover / background image URL', example: 'https://example.com/cover.jpg' })
+  @IsOptional()
+  @IsString()
+  coverImageUrl?: string;
+
   @ApiPropertyOptional({ description: 'Audio file URL or storage path', example: 'https://example.com/audio/song.mp3' })
   @IsOptional()
   @IsString()

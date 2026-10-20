@@ -55,7 +55,7 @@ class _AccountEmail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final email = ref.watch(
-      authControllerProvider.select((state) => state.value?.email),
+      authControllerProvider.select((state) => state.value?.user.email),
     );
     if (email == null) return const SizedBox.shrink();
 

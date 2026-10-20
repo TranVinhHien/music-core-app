@@ -53,7 +53,7 @@ class SplashPage extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.checklist_rounded,
+              Icons.music_note_rounded,
               size: 64,
               color: Theme.of(context).colorScheme.primary,
             ),

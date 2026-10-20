@@ -1,5 +1,4 @@
 import 'package:flutter_clean_architecture_example/core/result.dart';
-import 'package:flutter_clean_architecture_example/features/auth/domain/failures/auth_failure.dart';
 import 'package:flutter_clean_architecture_example/features/auth/presentation/auth_failure_message.dart';
 import 'package:flutter_clean_architecture_example/l10n/app_localizations_en.dart';
 import 'package:flutter_clean_architecture_example/l10n/app_localizations_zh.dart';
@@ -10,7 +9,7 @@ void main() {
     final localizations = AppLocalizationsEn();
 
     expect(
-      authFailureMessage(const InvalidCredentialsFailure(), localizations),
+      authFailureMessage(const UnauthorizedFailure(''), localizations),
       'The email or password is incorrect.',
     );
     expect(
@@ -27,7 +26,7 @@ void main() {
     final localizations = AppLocalizationsZh();
 
     expect(
-      authFailureMessage(const InvalidCredentialsFailure(), localizations),
+      authFailureMessage(const UnauthorizedFailure(''), localizations),
       '邮箱或密码不正确，请重新输入',
     );
     expect(

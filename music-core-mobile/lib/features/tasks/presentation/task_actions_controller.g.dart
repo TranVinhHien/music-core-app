@@ -37,7 +37,7 @@ final class TaskActionsControllerProvider
 }
 
 String _$taskActionsControllerHash() =>
-    r'4e35b07e8bf49a1337d2f55e9c3a827d9cfad6bd';
+    r'4cc15bcf54f1b5c0f2f421951a5024dbb73997cc';
 
 /// Runs task mutations and exposes their loading/error state to the view.
 
