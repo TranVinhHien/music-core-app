@@ -1,0 +1,19 @@
+meta {
+  name: Get Genre By ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/api/v1/catalog/genres/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: f984f241-e185-434c-8aa8-3fa08af99693
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

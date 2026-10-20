@@ -1,0 +1,32 @@
+meta {
+  name: Update Album
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/api/v1/catalog/albums/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: PASTE_ALBUM_ID_HERE
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "title": "Chúng Ta Của Hiện Tại (Deluxe Edition)",
+    "status": "ACTIVE",
+    "artists": [
+      {
+        "artistId": "PASTE_ARTIST_ID_HERE",
+        "position": 1
+      }
+    ]
+  }
+}

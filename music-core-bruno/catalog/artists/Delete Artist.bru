@@ -1,0 +1,19 @@
+meta {
+  name: Delete Artist
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/api/v1/catalog/artists/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: PASTE_ARTIST_ID_HERE
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

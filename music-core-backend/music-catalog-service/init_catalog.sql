@@ -39,6 +39,7 @@ CREATE TABLE tracks (
     track_number INTEGER CHECK (track_number IS NULL OR track_number > 0), -- Track position within the album
     disc_number INTEGER CHECK (disc_number IS NULL OR disc_number > 0), -- Disc number for multi-disc albums
     release_date DATE, -- Track release date, which may differ from the album release date
+    file_url TEXT, -- URL or storage path of the audio track file
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE', -- Track status, e.g. ACTIVE or INACTIVE
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), -- Record creation timestamp
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() -- Last update timestamp

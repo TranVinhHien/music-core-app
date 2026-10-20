@@ -1,0 +1,26 @@
+meta {
+  name: Update Genre
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/api/v1/catalog/genres/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: PASTE_GENRE_ID_HERE
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Nhạc Trẻ V-Pop",
+    "slug": "nhac-tre-v-pop"
+  }
+}

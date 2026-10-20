@@ -1,0 +1,27 @@
+meta {
+  name: Update Track
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/api/v1/catalog/tracks/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: 37f62cc0-a45d-4999-b487-1eb3bdcff183
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "title": "Chúng Ta Của Tương Lai (Remix)",
+    "status": "ACTIVE",
+    "durationMs": 250000
+  }
+}

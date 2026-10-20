@@ -1,0 +1,46 @@
+meta {
+  name: Create Track
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/catalog/tracks
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "title": "Chúng Ta Của Hiện Tại",
+    "durationMs": 245000,
+    "trackNumber": 1,
+    "discNumber": 1,
+    "releaseDate": "2024-03-08",
+    "fileUrl": "https://example.com/audio/chung-ta-cua-tuong-lai.mp3",
+    "status": "ACTIVE",
+    "albumId":"c1310a77-4e87-4b7e-85ec-598c842f4266",
+    "artists": [
+      {
+        "artistId": "e09b1bd0-8917-44a7-adc6-bdaef99f471a",
+        "role": "PRIMARY",
+        "position": 1
+      }
+    ],
+    
+  //   "genreIds": [
+  //     "PASTE_GENRE_ID_HERE"
+  //   ],
+    "sources": [
+      {
+        "source": "YOUTUBE",
+        "externalId": "psZ1g9fMfee",
+        "externalUrl": "https://www.youtube.com/watch?v=psZ1g9fMfee"
+      }
+    ]
+  }
+}

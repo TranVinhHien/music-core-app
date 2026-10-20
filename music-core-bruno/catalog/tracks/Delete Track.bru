@@ -1,0 +1,19 @@
+meta {
+  name: Delete Track
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/api/v1/catalog/tracks/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: PASTE_TRACK_ID_HERE
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Delete Genre
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/api/v1/catalog/genres/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: PASTE_GENRE_ID_HERE
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

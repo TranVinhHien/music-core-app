@@ -1,0 +1,19 @@
+meta {
+  name: Get Track By ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/api/v1/catalog/tracks/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: 37f62cc0-a45d-4999-b487-1eb3bdcff183
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
