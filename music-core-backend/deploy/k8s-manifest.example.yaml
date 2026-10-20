@@ -1,0 +1,231 @@
+# ==============================================================================
+# Kubernetes Deployment Examples: Secrets, ConfigMaps & Deployments
+# ==============================================================================
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: music-secrets
+  namespace: default
+type: Opaque
+stringData:
+  # Secrets used across services
+  JWT_SECRET: "your-production-super-secret-jwt-key"
+  DB_PASSWORD: "production-strong-db-password"
+  AWS_ACCESS_KEY_ID: "AKIA..."
+  AWS_SECRET_ACCESS_KEY: "secret..."
+  
+  # Option 1 for Gateway Permissions: Store permissions.json directly inside K8s Secret!
+  # No volume mount needed; can be updated live with `kubectl edit secret music-secrets`
+  PERMISSIONS_JSON: |
+    {
+      "roles": [
+        {
+          "role": "admin",
+          "permissions": {
+            "GET": ["*"],
+            "POST": ["*"],
+            "PUT": ["*"],
+            "DELETE": ["*"],
+            "PATCH": ["*"]
+          }
+        },
+        {
+          "role": "user",
+          "permissions": {
+            "GET": [
+              "/api/v1/users/*",
+              "/api/v1/catalog/*",
+              "/api/v1/library/*",
+              "/api/v1/audio/*"
+            ],
+            "POST": [
+              "/api/v1/library/*",
+              "/api/v1/listening-events/*",
+              "/api/v1/upload"
+            ],
+            "PUT": [
+              "/api/v1/users/*",
+              "/api/v1/library/*"
+            ],
+            "DELETE": [
+              "/api/v1/library/*"
+            ]
+          }
+        }
+      ]
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+  namespace: default
+data:
+  gateway.yaml: |
+    app:
+      name: "music-api-gateway"
+      version: "v1.0.0"
+    http_server:
+      host: "0.0.0.0"
+      port: 8000
+      mode: "release"
+    gateway:
+      routes:
+        - prefix: "/api/v1/auth"
+          target: "http://music-user-service:8080"
+          auth_required: false
+        - prefix: "/api/v1/users"
+          target: "http://music-user-service:8080"
+          auth_required: true
+        - prefix: "/api/v1/upload"
+          target: "http://music-user-service:8080"
+          auth_required: true
+        - prefix: "/api/v1/catalog"
+          target: "http://music-catalog-service:3002"
+          auth_required: false
+        - prefix: "/api/v1/library"
+          target: "http://music-library-service:3003"
+          auth_required: true
+        - prefix: "/api/v1/listening-events"
+          target: "http://music-listening-event-service:3004"
+          auth_required: true
+        - prefix: "/api/v1/audio"
+          target: "http://music-audio-service:3005"
+          auth_required: true
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-api-gateway
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: music-api-gateway
+  template:
+    metadata:
+      labels:
+        app: music-api-gateway
+    spec:
+      containers:
+        - name: gateway
+          image: music-api-gateway:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: GIN_MODE
+              value: "release"
+            - name: PORT
+              value: "8000"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: music-secrets
+                  key: JWT_SECRET
+            # Microservice URLs can be overridden via ENV if not using mounted file:
+            - name: USER_SERVICE_URL
+              value: "http://music-user-service.default.svc.cluster.local:8080"
+            # Permissions directly from Secret:
+            - name: PERMISSIONS_CONTENT
+              valueFrom:
+                secretKeyRef:
+                  name: music-secrets
+                  key: PERMISSIONS_JSON
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/gateway
+              readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: gateway-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: music-api-gateway
+  namespace: default
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8000
+  selector:
+    app: music-api-gateway
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-user-service
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: music-user-service
+  template:
+    metadata:
+      labels:
+        app: music-user-service
+    spec:
+      containers:
+        - name: user-service
+          image: music-user-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: GIN_MODE
+              value: "release"
+            - name: PORT
+              value: "8080"
+            - name: DB_HOST
+              value: "cockroachdb-public.default.svc.cluster.local"
+            - name: DB_PORT
+              value: "26257"
+            - name: DB_USER
+              value: "root"
+            - name: DB_NAME
+              value: "music-core-db"
+            - name: DB_SSLMODE
+              value: "disable"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: music-secrets
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: music-secrets
+                  key: JWT_SECRET
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: music-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: music-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: music-user-service
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: music-user-service

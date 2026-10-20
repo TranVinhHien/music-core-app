@@ -1,0 +1,22 @@
+meta {
+  name: Create Genre
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/catalog/genres
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "V-Pop",
+    "slug": "v-pop"
+  }
+}

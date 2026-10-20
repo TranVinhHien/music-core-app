@@ -1,0 +1,59 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { TracksService } from './tracks.service';
+import { CreateTrackDto } from './dto/create-track.dto';
+import { UpdateTrackDto } from './dto/update-track.dto';
+import { QueryTrackDto } from './dto/query-track.dto';
+
+@ApiTags('Tracks')
+@Controller('tracks')
+export class TracksController {
+  constructor(private readonly tracksService: TracksService) {}
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a new track with artists, genres, and sources' })
+  @ApiResponse({ status: 201, description: 'Track successfully created.' })
+  create(@Body() dto: CreateTrackDto) {
+    return this.tracksService.create(dto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get paginated list of tracks with filters' })
+  findAll(@Query() query: QueryTrackDto) {
+    return this.tracksService.findAll(query);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get track details with artists, genres, and sources' })
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tracksService.findOne(id);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update track by ID' })
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateTrackDto,
+  ) {
+    return this.tracksService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete track by ID' })
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tracksService.remove(id);
+  }
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Get All Albums
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/v1/catalog/albums?page=1&limit=10&status=ACTIVE&order=desc
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  limit: 10
+  status: ACTIVE
+  order: desc
+  ~query: Chung Ta
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

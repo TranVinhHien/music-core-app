@@ -1,0 +1,23 @@
+meta {
+  name: Create Artist
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/catalog/artists
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "Sơn Tùng M-TP",
+    "bio": "Ca sĩ, nhạc sĩ, nhà sản xuất âm nhạc hàng đầu Việt Nam",
+    "imageUrl": "https://example.com/artists/son-tung-mtp.jpg"
+  }
+}

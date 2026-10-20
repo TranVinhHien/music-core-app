@@ -1,0 +1,19 @@
+meta {
+  name: Remove Favorite Track
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{base_url}}/api/v1/library/favorites/tracks/:trackId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  trackId: 37f62cc0-a45d-4999-b487-1eb3bdcff183
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

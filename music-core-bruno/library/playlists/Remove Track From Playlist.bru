@@ -1,0 +1,20 @@
+meta {
+  name: Remove Track From Playlist
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{base_url}}/api/v1/library/playlists/:id/tracks/:trackId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: d22b6455-68ff-4047-b243-6d5fd3d1c41b
+  trackId: 37f62cc0-a45d-4999-b487-1eb3bdcff183
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

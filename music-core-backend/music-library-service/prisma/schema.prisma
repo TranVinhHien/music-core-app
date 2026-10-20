@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Playlist {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String          @map("user_id") @db.Uuid
+  name          String          @db.VarChar(255)
+  description   String?         @db.Text
+  coverImageUrl String?         @map("cover_image_url") @db.Text
+  visibility    String          @default("PRIVATE") @db.VarChar(20)
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tracks        PlaylistTrack[]
+
+  @@index([userId, createdAt(sort: Desc)], map: "idx_playlists_user_created")
+  @@map("playlists")
+}
+
+model PlaylistTrack {
+  playlistId String   @map("playlist_id") @db.Uuid
+  trackId    String   @map("track_id") @db.Uuid
+  position   Int      @db.Integer
+  addedAt    DateTime @default(now()) @map("added_at") @db.Timestamptz()
+
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@id([playlistId, trackId])
+  @@index([playlistId, position], map: "idx_playlist_tracks_order")
+  @@index([trackId], map: "idx_playlist_tracks_track_id")
+  @@map("playlist_tracks")
+}
+
+model UserFavoriteTrack {
+  userId    String   @map("user_id") @db.Uuid
+  trackId   String   @map("track_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@id([userId, trackId])
+  @@index([trackId], map: "idx_user_favorite_tracks_track_id")
+  @@map("user_favorite_tracks")
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Delete Album
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/api/v1/catalog/albums/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: c1310a77-4e87-4b7e-85ec-598c842f4266
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

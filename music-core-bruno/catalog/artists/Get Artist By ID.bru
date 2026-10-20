@@ -1,0 +1,19 @@
+meta {
+  name: Get Artist By ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/api/v1/catalog/artists/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: e09b1bd0-8917-44a7-adc6-bdaef99f471a
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

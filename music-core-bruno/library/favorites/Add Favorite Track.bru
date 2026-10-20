@@ -1,0 +1,21 @@
+meta {
+  name: Add Favorite Track (Love)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/api/v1/library/favorites/tracks
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "trackId": "37f62cc0-a45d-4999-b487-1eb3bdcff183"
+  }
+}

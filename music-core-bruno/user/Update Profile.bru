@@ -5,7 +5,7 @@ meta {
 }
 
 put {
-  url: {{base_url}}/api/v1/auth/me
+  url: {{base_url}}/api/v1/users/me
   body: json
   auth: inherit
 }
@@ -16,9 +16,9 @@ headers {
 
 body:json {
   {
-    "full_name": "Updated Test User",
-    "phone_number": "0987654321",
-    "home_address": "123 Street, City",
+    "full_name": "Trần Vinh Hiển",
+    "phone_number": "0344197279",
+    "home_address": "214 Đinh Bộ Lĩnh, Hồ Chí Minh",
     "avatar_url": "https://example.com/avatar.png"
   }
 }

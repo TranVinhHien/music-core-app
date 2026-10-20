@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Database
+  # ==========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: music-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: music-core-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # ==========================================
+  # User Service
+  # ==========================================
+  user-service:
+    build:
+      context: ./music-user-service
+      dockerfile: Dockerfile
+    container_name: music-user-service
+    depends_on:
+      - postgres
+    environment:
+      # Option A: Override using ENV / Secrets
+      PORT: 8080
+      GIN_MODE: release
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: mysecretpassword
+      DB_NAME: music-core-db
+      DB_SSLMODE: disable
+      JWT_SECRET: your-super-secure-jwt-secret-key-12345
+      AWS_REGION: ap-northeast-2
+      AWS_ACCESS_KEY_ID: AKIA...
+      AWS_SECRET_ACCESS_KEY: secret...
+      AWS_BUCKET_NAME: my-music-bucket
+      # Option B: Pass custom config file path
+      # CONFIG_FILE: /app/config/app.production.yaml
+    # volumes:
+      # Mount custom YAML config file from host
+      # - ./music-user-service/app.development.yaml:/app/config/app.production.yaml:ro
+    ports:
+      - "8080:8080"
+
+  # ==========================================
+  # API Gateway
+  # ==========================================
+  api-gateway:
+    build:
+      context: ./music-api-gateway
+      dockerfile: Dockerfile
+    container_name: music-api-gateway
+    depends_on:
+      - user-service
+    environment:
+      PORT: 8000
+      GIN_MODE: release
+      JWT_SECRET: your-super-secure-jwt-secret-key-12345
+      # Dynamically route to user-service container in Docker network
+      USER_SERVICE_URL: http://user-service:8080
+      # Target URLs for other microservices (when deployed)
+      # CATALOG_SERVICE_URL: http://catalog-service:3002
+      # LIBRARY_SERVICE_URL: http://library-service:3003
+      # LISTENING_EVENT_SERVICE_URL: http://listening-event-service:3004
+      # AUDIO_SERVICE_URL: http://audio-service:3005
+
+      # Permissions Option A: Path to file (mounted via volumes)
+      PERMISSIONS_FILE: /app/config/permissions.json
+      # Permissions Option B: Inline JSON from ENV directly
+      # PERMISSIONS_JSON: '{"roles":[{"role":"admin","permissions":{"GET":["*"],"POST":["*"],"PUT":["*"],"DELETE":["*"]}},{"role":"user","permissions":{"GET":["/api/v1/users/*"],"POST":["/api/v1/upload"]}}]}'
+    volumes:
+      # Mount gateway configuration and permissions files into container
+      - ./music-api-gateway/config/gateway.development.yaml:/app/config/gateway.yaml:ro
+      - ./music-api-gateway/config/permissions.json:/app/config/permissions.json:ro
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
