@@ -123,6 +123,7 @@ type UserResponse struct {
 type AuthResponse struct {
 	Token        string        `json:"token"`
 	RefreshToken string        `json:"refresh_token"`
+	SessionID    uuid.UUID     `json:"session_id"`
 	User         *UserResponse `json:"user"`
 }
 

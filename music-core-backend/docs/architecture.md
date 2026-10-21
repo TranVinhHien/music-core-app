@@ -99,12 +99,22 @@ To maintain clear context, the platform is divided into implemented and planned 
    - Dual-token issuance: AccessToken (short-lived) + RefreshToken (long-lived).
    - Profile management (`/api/v1/users/me`) and avatar upload to AWS S3.
    - GORM CockroachDB/PostgreSQL integration.
-3. **`music-common`**:
+3. **`music-catalog-service`**:
+   - Stack: NestJS + Prisma ORM (Port `3002`).
+   - Catalog management: Artists, Albums, Tracks, and Genres taxonomy.
+   - Dynamic search, filters, pagination, and unified response envelope.
+   - Versioned migrations & down scripts.
+4. **`music-library-service`**:
+   - Stack: NestJS + Prisma ORM (Port `3003`).
+   - Personal user collections: Playlists, track relationships, favorites, and saved items.
+   - Identity context consumption via forwarded headers (`X-User-ID`, `X-User-Roles`).
+5. **`music-listening-event-service`**:
+   - Stack: Go + Gin + MongoDB (Port `3004`).
+   - High-throughput listening event ingestion (batch & single).
+   - Event validation, deduplication, and persistence for analytics telemetry.
+6. **`music-common`**:
    - Shared generic response envelopes (`Response[T]`) and pagination models.
    - Canonical header constants (`X-User-ID`, `X-Request-ID`, etc.).
 
 ### Planned (In Roadmap)
-1. **`music-catalog-service`**: Track, artist, and album CRUD models, search indexing (Elasticsearch / Meilisearch).
-2. **`music-audio-service`**: FFmpeg transcoding pipelines, HLS playlist packaging (`.m3u8`, `.ts`), range-request audio streaming.
-3. **`music-library-service`**: Playlist CRUD, playlist track ordering, and user favorites.
-4. **`music-listening-event-service`**: Message broker ingestion (Apache Kafka or RabbitMQ) and TimescaleDB analytics storage.
+1. **`music-audio-service`**: FFmpeg transcoding pipelines, HLS playlist packaging (`.m3u8`, `.ts`), range-request audio streaming.

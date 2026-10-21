@@ -1,0 +1,38 @@
+meta {
+  name: Ingest Single Event
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/api/v1/listening-events
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "events": [
+      {
+        "event_id": "b8c9d0e1-f2a3-4567-2345-678901234567",
+        "event_type": "TRACK_STARTED",
+        "occurred_at": "2026-10-21T10:10:00Z",
+        "session_id": "99999999-8888-7777-6666-555555555555",
+        "track_id": "11111111-2222-3333-4444-555555555555",
+        "schema_version": 1,
+        "source": {
+          "type": "album",
+          "id": "33333333-4444-5555-6666-777777777777"
+        },
+        "properties": {
+          "duration_ms": 180000,
+          "position_ms": 0
+        }
+      }
+    ]
+  }
+}

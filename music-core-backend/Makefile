@@ -10,6 +10,9 @@ run-catalog:
 run-library:
 	cd music-library-service && npm run wdev
 
+run-listening-event:
+	cd music-listening-event-service && go run cmd/server/main.go
+
 build-gateway:
 	cd music-api-gateway && go build -trimpath -o bin/gateway ./cmd
 
@@ -21,6 +24,9 @@ build-catalog:
 
 build-library:
 	cd music-library-service && npm run build
+
+build-listening-event:
+	cd music-listening-event-service && go build -trimpath -o bin/server ./cmd/server
 
 # --- Migration Commands ---
 migrate-catalog:
@@ -59,7 +65,11 @@ test-catalog:
 test-library:
 	cd music-library-service && npm test
 
+test-listening-event:
+	cd music-listening-event-service && go test -v ./...
+
 test-common:
 	cd music-common && go test -v ./...
 
-test-all: test-common test-gateway test-user test-catalog test-library
+test-all: test-common test-gateway test-user test-catalog test-library test-listening-event
+

@@ -3,5 +3,6 @@ go 1.26.0
 use (
 	./music-api-gateway
 	./music-common
+	./music-listening-event-service
 	./music-user-service
 )

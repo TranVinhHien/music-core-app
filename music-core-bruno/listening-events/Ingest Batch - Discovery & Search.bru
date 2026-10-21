@@ -1,0 +1,36 @@
+meta {
+  name: Ingest Batch - Discovery & Search
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/api/v1/listening-events/batch
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "events": [
+      {
+        "event_id": "d4e5f6a7-b8c9-0123-def1-234567890123",
+        "event_type": "SEARCH_PERFORMED",
+        "occurred_at": "2026-10-21T10:05:00Z",
+        "schema_version": 1,
+        "source": {
+          "type": "search"
+        },
+        "properties": {
+          "query": "Son Tung M-TP",
+          "search_type": "track",
+          "results_count": 25
+        }
+      }
+    ]
+  }
+}

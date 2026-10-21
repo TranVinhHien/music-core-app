@@ -1,7 +1,15 @@
 # Music Library Service - Documentation
 
-## Status: Planned / Not Implemented
+## Status: Implemented & Active
 
-This service has not yet been implemented in the codebase.
-- Planned Port: `3003` (referenced in `music-api-gateway/gateway.example.yaml`).
-- Expected Domain: Custom playlist management, liked songs, personal collections.
+- **Stack**: NestJS 10, TypeScript, Prisma ORM, PostgreSQL
+- **Active Port**: `3004` (Base URL: `http://localhost:3004/api/v1/library`)
+- **Domain Boundaries**:
+  - Personal user collections: Custom Playlists, Favorite/Liked Tracks, Saved Albums.
+  - Playlist track sequencing & order management.
+  - Consumes upstream identity forwarded headers (`X-User-ID`, `X-User-Roles`).
+- **Database**:
+  - Schema file: `prisma/schema.prisma`
+  - Versioned migrations & rollback scripts: `prisma/migrations/`
+- **Agent Operating Guidelines**:
+  - See @music-library-service/AGENTS.md

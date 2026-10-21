@@ -99,7 +99,9 @@ func TestProxyRouteForwardingWithAuthAndPermissions(t *testing.T) {
 
 	// 2. Setup Evaluator with user permissions
 	evaluator, _ := permissions.NewEvaluator("")
-	_ = evaluator.LoadFromFile("./config/permissions.json")
+	if err := evaluator.LoadFromFile("./permissions.json"); err != nil {
+		_ = evaluator.LoadFromFile("./config/permissions.json")
+	}
 
 	cfg := &config.Config{
 		App: config.AppConfig{

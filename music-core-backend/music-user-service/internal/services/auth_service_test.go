@@ -115,13 +115,22 @@ func TestAuthServiceRegisterLoginAndValidate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if auth.Token == "" || auth.RefreshToken == "" {
-		t.Fatal("tokens not generated")
+	if auth.Token == "" || auth.RefreshToken == "" || auth.SessionID == uuid.Nil {
+		t.Fatal("tokens or session id not generated")
 	}
 	claims, err := s.ValidateToken(dto.ValidateTokenInput{Token: auth.Token})
 	if err != nil || claims.UserID != got.ID {
 		t.Fatalf("claims=%+v err=%v", claims, err)
 	}
+
+	refreshed, err := s.RefreshToken(ctx, dto.RefreshTokenInput{RefreshToken: auth.RefreshToken})
+	if err != nil {
+		t.Fatalf("refresh error=%v", err)
+	}
+	if refreshed.SessionID != auth.SessionID {
+		t.Fatalf("expected session ID %v, got %v", auth.SessionID, refreshed.SessionID)
+	}
+
 	if err := s.Logout(ctx, dto.LogoutInput{RefreshToken: auth.RefreshToken}); err != nil || repo.revoked == uuid.Nil {
 		t.Fatalf("logout err=%v", err)
 	}

@@ -1,0 +1,56 @@
+meta {
+  name: Ingest Batch - Library & Playlist
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/api/v1/listening-events/batch
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "events": [
+      {
+        "event_id": "e5f6a7b8-c9d0-1234-ef12-345678901234",
+        "event_type": "TRACK_FAVORITED",
+        "occurred_at": "2026-10-21T10:06:00Z",
+        "track_id": "11111111-2222-3333-4444-555555555555",
+        "schema_version": 1,
+        "source": {
+          "type": "track",
+          "id": "11111111-2222-3333-4444-555555555555"
+        },
+        "properties": {}
+      },
+      {
+        "event_id": "f6a7b8c9-d0e1-2345-f123-456789012345",
+        "event_type": "TRACK_ADDED_TO_PLAYLIST",
+        "occurred_at": "2026-10-21T10:06:30Z",
+        "track_id": "11111111-2222-3333-4444-555555555555",
+        "schema_version": 1,
+        "properties": {
+          "playlist_id": "77777777-8888-9999-aaaa-bbbbbbbbbbbb",
+          "position": 1
+        }
+      },
+      {
+        "event_id": "a7b8c9d0-e1f2-3456-1234-567890123456",
+        "event_type": "PLAYLIST_PLAYED",
+        "occurred_at": "2026-10-21T10:07:00Z",
+        "schema_version": 1,
+        "properties": {
+          "playlist_id": "77777777-8888-9999-aaaa-bbbbbbbbbbbb",
+          "track_count": 12,
+          "playback_mode": "SHUFFLE"
+        }
+      }
+    ]
+  }
+}
