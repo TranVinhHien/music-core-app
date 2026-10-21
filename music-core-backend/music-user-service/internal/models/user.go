@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // AuthProvider defines supported authentication providers.
@@ -85,4 +86,11 @@ type RefreshToken struct {
 
 func (RefreshToken) TableName() string {
 	return "refresh_tokens"
+}
+
+func (r *RefreshToken) BeforeCreate(tx *gorm.DB) error {
+	if r.ID == uuid.Nil {
+		r.ID = uuid.New()
+	}
+	return nil
 }

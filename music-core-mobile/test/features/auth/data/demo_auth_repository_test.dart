@@ -16,6 +16,7 @@ void main() {
       ),
       accessToken: 'test-token',
       refreshToken: 'test-refresh-token',
+      sessionId: 'test-session-id',
     );
 
     test('signs in successfully and saves session to local storage', () async {
@@ -91,6 +92,7 @@ void main() {
         ),
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
+        sessionId: 'refreshed-session-id',
       );
       final remote = _FakeAuthRemoteDataSource(
         refreshTokenResult: const ResultOk(refreshedSession),
@@ -103,6 +105,7 @@ void main() {
       expect(result, isA<ResultOk<AuthSession>>());
       expect((result as ResultOk).value.accessToken, 'new-access-token');
       expect(storage.session?.accessToken, 'new-access-token');
+      expect(storage.session?.sessionId, 'refreshed-session-id');
     });
 
     test('clears session when refresh token is rejected', () async {
@@ -125,6 +128,9 @@ final class _FakeSessionStorage implements SessionStorage {
 
   @override
   String? get cachedAccessToken => session?.accessToken;
+
+  @override
+  String? get cachedSessionId => session?.sessionId;
 
   @override
   Future<void> clearSession() async {

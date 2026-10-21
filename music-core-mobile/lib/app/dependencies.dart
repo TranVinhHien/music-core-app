@@ -77,6 +77,8 @@ ApiClient apiClient(Ref ref) {
                 (data['token'] ?? data['access_token']) as String?;
             final newRefreshToken =
                 (data['refresh_token'] as String?) ?? refreshToken;
+            final newSessionId =
+                (data['session_id'] ?? data['sessionId']) as String? ?? session?.sessionId;
 
             if (newAccessToken != null && newAccessToken.isNotEmpty) {
               final updatedSession = AuthSession(
@@ -85,6 +87,7 @@ ApiClient apiClient(Ref ref) {
                     : session!.user,
                 accessToken: newAccessToken,
                 refreshToken: newRefreshToken,
+                sessionId: newSessionId,
               );
               await storage.writeSession(updatedSession);
               return newAccessToken;

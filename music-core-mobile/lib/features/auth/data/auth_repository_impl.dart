@@ -88,6 +88,9 @@ class AuthRepositoryImpl implements AuthRepository {
             refreshToken: (newSession.refreshToken != null && newSession.refreshToken!.isNotEmpty)
                 ? newSession.refreshToken
                 : refreshToken,
+            sessionId: (newSession.sessionId != null && newSession.sessionId!.isNotEmpty)
+                ? newSession.sessionId
+                : session?.sessionId,
           );
           await _sessionStorage.writeSession(updatedSession);
           return ResultOk(updatedSession);

@@ -11,6 +11,8 @@ abstract interface class SessionStorage {
   Future<void> clearSession();
 
   String? get cachedAccessToken;
+
+  String? get cachedSessionId;
 }
 
 final class SharedPreferencesSessionStorage implements SessionStorage {
@@ -21,9 +23,13 @@ final class SharedPreferencesSessionStorage implements SessionStorage {
 
   final SharedPreferencesAsync _preferences;
   String? _inMemoryAccessToken;
+  String? _inMemorySessionId;
 
   @override
   String? get cachedAccessToken => _inMemoryAccessToken;
+
+  @override
+  String? get cachedSessionId => _inMemorySessionId;
 
   @override
   Future<AuthSession?> readSession() async {
@@ -35,6 +41,7 @@ final class SharedPreferencesSessionStorage implements SessionStorage {
       final map = jsonDecode(jsonString) as Map<String, dynamic>;
       final session = AuthSession.fromJson(map);
       _inMemoryAccessToken = session.accessToken;
+      _inMemorySessionId = session.sessionId;
       return session;
     } catch (_) {
       return null;
@@ -44,6 +51,7 @@ final class SharedPreferencesSessionStorage implements SessionStorage {
   @override
   Future<void> writeSession(AuthSession session) async {
     _inMemoryAccessToken = session.accessToken;
+    _inMemorySessionId = session.sessionId;
     final jsonString = jsonEncode(session.toJson());
     await _preferences.setString(_sessionKey, jsonString);
   }
@@ -51,6 +59,7 @@ final class SharedPreferencesSessionStorage implements SessionStorage {
   @override
   Future<void> clearSession() async {
     _inMemoryAccessToken = null;
+    _inMemorySessionId = null;
     await _preferences.remove(_sessionKey);
   }
 }

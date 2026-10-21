@@ -128,6 +128,7 @@ func (s *AuthService) Login(ctx context.Context, input dto.LoginInput) (resp *dt
 	}
 
 	refreshToken := &models.RefreshToken{
+		ID:        uuid.New(),
 		UserID:    user.ID,
 		Token:     refreshTokenStr,
 		ExpiresAt: time.Now().Add(refreshTokenExpiry),
@@ -142,6 +143,7 @@ func (s *AuthService) Login(ctx context.Context, input dto.LoginInput) (resp *dt
 	return &dto.AuthResponse{
 		Token:        token,
 		RefreshToken: refreshTokenStr,
+		SessionID:    refreshToken.ID,
 		User:         dto.NewUserResponse(user),
 	}, nil
 }
@@ -179,6 +181,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, input dto.RefreshTokenIn
 	return &dto.AuthResponse{
 		Token:        token,
 		RefreshToken: rt.Token,
+		SessionID:    rt.ID,
 		User:         dto.NewUserResponse(user),
 	}, nil
 }
