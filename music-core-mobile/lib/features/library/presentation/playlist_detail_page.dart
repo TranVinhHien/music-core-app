@@ -12,6 +12,8 @@ import '../../catalog/domain/entities/track_entity.dart';
 import '../../offline/presentation/offline_controller.dart';
 import '../../player/presentation/now_playing_page.dart';
 import '../../player/presentation/player_controller.dart';
+import '../../../app/dependencies.dart';
+import '../../events/domain/entities/client_event.dart';
 import 'favorites_controller.dart';
 import 'playlist_detail_controller.dart';
 import 'playlists_controller.dart';
@@ -110,37 +112,74 @@ class PlaylistDetailPage extends ConsumerWidget {
                       ),
                       if (playlist.tracks.isNotEmpty) ...[
                         const SizedBox(height: AppSpacing.md),
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.darkSurfaceElevated,
-                            foregroundColor: AppColors.primary,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: AppRadius.borderRadiusMd,
-                              side: BorderSide(color: AppColors.darkBorder),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                          ),
-                          icon: const Icon(
-                            Icons.download_for_offline_rounded,
-                            size: 20,
-                          ),
-                          label: const Text('Tải tất cả để nghe offline'),
-                          onPressed: () {
-                            ref
-                                .read(downloadProgressControllerProvider.notifier)
-                                .downloadAllInPlaylist(playlist.tracks);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Đang tải ${playlist.tracks.length} bài hát trong playlist về máy...',
+                        Wrap(
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.xs,
+                          alignment: WrapAlignment.center,
+                          children: [
+                            FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.black,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: AppRadius.borderRadiusMd,
                                 ),
-                                duration: const Duration(seconds: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
                               ),
-                            );
-                          },
+                              icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                              label: const Text('Phát tất cả'),
+                              onPressed: () {
+                                ref.read(eventTrackerProvider).playlistPlayed(
+                                      playlistId: playlist.id,
+                                      trackCount: playlist.tracks.length,
+                                    );
+                                ref.read(playerControllerProvider.notifier).playTrack(
+                                      playlist.tracks.first,
+                                      queue: playlist.tracks,
+                                      source: EventSourceModel(
+                                        type: 'playlist',
+                                        id: playlist.id,
+                                      ),
+                                    );
+                                NowPlayingPage.show(context);
+                              },
+                            ),
+                            FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.darkSurfaceElevated,
+                                foregroundColor: AppColors.primary,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: AppRadius.borderRadiusMd,
+                                  side: BorderSide(color: AppColors.darkBorder),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.download_for_offline_rounded,
+                                size: 20,
+                              ),
+                              label: const Text('Tải offline'),
+                              onPressed: () {
+                                ref
+                                    .read(downloadProgressControllerProvider.notifier)
+                                    .downloadAllInPlaylist(playlist.tracks);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Đang tải ${playlist.tracks.length} bài hát trong playlist về máy...',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ],
@@ -184,9 +223,18 @@ class PlaylistDetailPage extends ConsumerWidget {
                                 );
                               },
                         onTap: () {
-                          ref
-                              .read(playerControllerProvider.notifier)
-                              .playTrack(track, queue: playlist.tracks);
+                          ref.read(eventTrackerProvider).playlistPlayed(
+                                playlistId: playlist.id,
+                                trackCount: playlist.tracks.length,
+                              );
+                          ref.read(playerControllerProvider.notifier).playTrack(
+                                track,
+                                queue: playlist.tracks,
+                                source: EventSourceModel(
+                                  type: 'playlist',
+                                  id: playlist.id,
+                                ),
+                              );
                           NowPlayingPage.show(context);
                         },
                         onFavoriteToggle: () {

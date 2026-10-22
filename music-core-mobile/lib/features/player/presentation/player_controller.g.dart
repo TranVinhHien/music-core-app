@@ -41,7 +41,7 @@ final class PlayerControllerProvider
   }
 }
 
-String _$playerControllerHash() => r'dea1f218691e82db6305abf671759bcce784d59a';
+String _$playerControllerHash() => r'4301a94a18995e35d71210b99e5ac6b244603ea0';
 
 abstract class _$PlayerController extends $Notifier<PlayerState> {
   PlayerState build();

@@ -84,7 +84,7 @@ final class SongsControllerProvider
   SongsController create() => SongsController();
 }
 
-String _$songsControllerHash() => r'51a8401fbff51f8f85788985f5a19fb2ea652584';
+String _$songsControllerHash() => r'572cf3818ee81d5d0cbea55ee514876c1257fe54';
 
 abstract class _$SongsController extends $AsyncNotifier<List<TrackEntity>> {
   FutureOr<List<TrackEntity>> build();

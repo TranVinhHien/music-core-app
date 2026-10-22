@@ -1,12 +1,14 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../result.dart';
 
-/// Central HTTP Client wrapping Dio with unified interceptors and error mappings.
+/// Central HTTP Client wrapping Dio with unified interceptors, global cURL logging, and error mappings.
 class ApiClient {
   ApiClient({
     required String baseUrl,
-    String? Function()? tokenGetter,
+    this.tokenGetter,
     Future<String?> Function()? onRefreshToken,
     Future<void> Function()? onAuthenticationFailed,
   }) : _dio = Dio(
@@ -23,15 +25,47 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          if (tokenGetter != null) {
-            final token = tokenGetter();
-            if (token != null && token.isNotEmpty) {
-              options.headers['Authorization'] = 'Bearer $token';
-            }
+          final token = tokenGetter?.call();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
           }
+
+          _logRequest(options);
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          String formattedBody;
+          try {
+            if (response.data is Map || response.data is List) {
+              formattedBody =
+                  const JsonEncoder.withIndent('  ').convert(response.data);
+            } else {
+              formattedBody = response.data?.toString() ?? '';
+            }
+          } catch (_) {
+            formattedBody = response.data?.toString() ?? '';
+          }
+
+          _logResponse(response, formattedBody);
+          return handler.next(response);
+        },
         onError: (err, handler) async {
+          String formattedBody = '';
+          if (err.response?.data != null) {
+            try {
+              if (err.response!.data is Map || err.response!.data is List) {
+                formattedBody = const JsonEncoder.withIndent('  ')
+                    .convert(err.response!.data);
+              } else {
+                formattedBody = err.response!.data.toString();
+              }
+            } catch (_) {
+              formattedBody = err.response!.data.toString();
+            }
+          }
+
+          _logError(err, formattedBody);
+
           final statusCode = err.response?.statusCode;
           final path = err.requestOptions.path;
 
@@ -67,6 +101,143 @@ class ApiClient {
     );
   }
 
+  static String _generateCurl(RequestOptions options) {
+    final buffer = StringBuffer('curl -i -X ${options.method} "${options.uri}"');
+
+    options.headers.forEach((key, value) {
+      if (value != null) {
+        buffer.write(' \\\n  -H "$key: $value"');
+      }
+    });
+
+    if (options.data != null) {
+      String dataString;
+      if (options.data is Map || options.data is List) {
+        try {
+          dataString = const JsonEncoder.withIndent('  ').convert(options.data);
+        } catch (_) {
+          dataString = options.data.toString();
+        }
+      } else if (options.data is FormData) {
+        final formData = options.data as FormData;
+        dataString = formData.fields.map((e) => '${e.key}=${e.value}').join('&');
+      } else {
+        dataString = options.data.toString();
+      }
+      buffer.write(" \\\n  -d '$dataString'");
+    }
+
+    return buffer.toString();
+  }
+
+  static String _generateSingleLineCurl(RequestOptions options) {
+    final buffer = StringBuffer('curl -i -X ${options.method} "${options.uri}"');
+
+    options.headers.forEach((key, value) {
+      if (value != null) {
+        buffer.write(' -H "$key: $value"');
+      }
+    });
+
+    if (options.data != null) {
+      String dataString;
+      if (options.data is Map || options.data is List) {
+        try {
+          dataString = jsonEncode(options.data);
+        } catch (_) {
+          dataString = options.data.toString();
+        }
+      } else if (options.data is FormData) {
+        final formData = options.data as FormData;
+        dataString = formData.fields.map((e) => '${e.key}=${e.value}').join('&');
+      } else {
+        dataString = options.data.toString();
+      }
+      buffer.write(" -d '$dataString'");
+    }
+
+    return buffer.toString();
+  }
+
+  static void _logRaw(String text) {
+    // In Flutter, print() is intercepted by UIDartState::Log and guaranteed to stream to `flutter run` console.
+    print(text);
+  }
+
+  static void _logRequest(RequestOptions options) {
+    final singleLineCurl = _generateSingleLineCurl(options);
+    final multiLineCurl = _generateCurl(options);
+    _logRaw(
+      '\n>>> [HTTP REQUEST cURL]\n'
+      '# One-line (copy-paste directly without line wrapping):\n'
+      '$singleLineCurl\n\n'
+      '# Formatted:\n'
+      '$multiLineCurl\n'
+      '<<< [END cURL]\n',
+    );
+  }
+
+  static void _logResponse(Response<dynamic> response, String formattedBody) {
+    _logRaw(
+      '\n>>> [HTTP RESPONSE: ${response.statusCode} ${response.statusMessage ?? 'OK'}] ${response.requestOptions.method} ${response.requestOptions.uri}\n'
+      '${formattedBody.isNotEmpty ? '$formattedBody\n' : ''}'
+      '<<< [END RESPONSE]\n',
+    );
+  }
+
+  static void _logError(DioException err, String formattedBody) {
+    _logRaw(
+      '\n>>> [HTTP ERROR: ${err.response?.statusCode ?? 'NO_STATUS'}] ${err.requestOptions.method} ${err.requestOptions.uri}\n'
+      'Message: ${err.message}\n'
+      '${formattedBody.isNotEmpty ? '$formattedBody\n' : ''}'
+      '<<< [END ERROR]\n',
+    );
+  }
+
+  /// Create a standalone logging interceptor that can be attached to any Dio instance.
+  static Interceptor createLoggingInterceptor() {
+    return InterceptorsWrapper(
+      onRequest: (options, handler) {
+        _logRequest(options);
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        String formattedBody;
+        try {
+          if (response.data is Map || response.data is List) {
+            formattedBody =
+                const JsonEncoder.withIndent('  ').convert(response.data);
+          } else {
+            formattedBody = response.data?.toString() ?? '';
+          }
+        } catch (_) {
+          formattedBody = response.data?.toString() ?? '';
+        }
+
+        _logResponse(response, formattedBody);
+        return handler.next(response);
+      },
+      onError: (err, handler) {
+        String formattedBody = '';
+        if (err.response?.data != null) {
+          try {
+            if (err.response!.data is Map || err.response!.data is List) {
+              formattedBody = const JsonEncoder.withIndent('  ')
+                  .convert(err.response!.data);
+            } else {
+              formattedBody = err.response!.data.toString();
+            }
+          } catch (_) {
+            formattedBody = err.response!.data.toString();
+          }
+        }
+
+        _logError(err, formattedBody);
+        return handler.next(err);
+      },
+    );
+  }
+
   Future<String?>? _ongoingRefresh;
 
   Future<String?> _getRefreshedToken(Future<String?> Function() refreshHandler) {
@@ -80,8 +251,10 @@ class ApiClient {
   }
 
   final Dio _dio;
+  final String? Function()? tokenGetter;
 
   Dio get rawDio => _dio;
+  String get baseUrl => _dio.options.baseUrl;
 
   /// Perform a GET request
   Future<Result<dynamic>> get(
@@ -191,10 +364,12 @@ class ApiClient {
     if (response != null) {
       String errorMessage = 'Request failed';
       if (response.data is Map<String, dynamic>) {
-        final message = response.data['message'] ?? response.data['error'];
+        final message = response.data['message'] ?? response.data['error'] ?? response.data['data'];
         if (message != null) {
           errorMessage = message.toString();
         }
+      } else if (response.data is String) {
+        errorMessage = response.data as String;
       }
 
       final statusCode = response.statusCode;

@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/song_list_item.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../catalog/domain/entities/track_entity.dart';
+import '../../events/domain/entities/client_event.dart';
 import '../../library/presentation/favorites_controller.dart';
 import '../../library/presentation/playlists_controller.dart';
 import '../../library/presentation/widgets/add_to_playlist_sheet.dart';
@@ -264,9 +265,11 @@ class HomePage extends ConsumerWidget {
                           );
                         },
                         onTap: () {
-                          ref
-                              .read(playerControllerProvider.notifier)
-                              .playTrack(track, queue: songs);
+                          ref.read(playerControllerProvider.notifier).playTrack(
+                                track,
+                                queue: songs,
+                                source: const EventSourceModel(type: 'home'),
+                              );
                           NowPlayingPage.show(context);
                         },
                       );

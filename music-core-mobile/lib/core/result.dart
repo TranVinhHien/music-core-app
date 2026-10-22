@@ -20,6 +20,11 @@ final class ResultError<T> extends Result<T> {
 /// Failure categories that are meaningful outside the data layer.
 abstract class AppFailure implements Exception {
   const AppFailure();
+
+  String get message => 'An error occurred';
+
+  @override
+  String toString() => '$runtimeType: $message';
 }
 
 /// A local persistence operation failed.

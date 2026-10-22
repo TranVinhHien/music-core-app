@@ -93,7 +93,7 @@ final class SessionStorageProvider
   }
 }
 
-String _$sessionStorageHash() => r'6f718f2d057153b65520c735ac425ae2e0034649';
+String _$sessionStorageHash() => r'5936bb7df014b5300d07c38495a4b5b6e8486f6a';
 
 @ProviderFor(apiClient)
 final apiClientProvider = ApiClientProvider._();
@@ -134,7 +134,7 @@ final class ApiClientProvider
   }
 }
 
-String _$apiClientHash() => r'b147f802593a4b181c0c5d867941da3db276ab7f';
+String _$apiClientHash() => r'ce154bf2178859b163ffec0423eb706caeeae3b3';
 
 @ProviderFor(authRemoteDataSource)
 final authRemoteDataSourceProvider = AuthRemoteDataSourceProvider._();
@@ -454,7 +454,7 @@ final class MusicDatabaseProvider
   }
 }
 
-String _$musicDatabaseHash() => r'07cca441a6769dd74ee0e962cc3c62f7e7dda7fb';
+String _$musicDatabaseHash() => r'3f05c855602c5365b02e6f8fa80fa22d1cc9bbf7';
 
 @ProviderFor(offlineDownloadService)
 final offlineDownloadServiceProvider = OfflineDownloadServiceProvider._();
@@ -632,3 +632,140 @@ final class TaskRepositoryProvider
 }
 
 String _$taskRepositoryHash() => r'2ac1c1e0e255aea08408037042366ea49ee6ddb6';
+
+@ProviderFor(eventsRemoteDataSource)
+final eventsRemoteDataSourceProvider = EventsRemoteDataSourceProvider._();
+
+final class EventsRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          EventsRemoteDataSource,
+          EventsRemoteDataSource,
+          EventsRemoteDataSource
+        >
+    with $Provider<EventsRemoteDataSource> {
+  EventsRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'eventsRemoteDataSourceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$eventsRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<EventsRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  EventsRemoteDataSource create(Ref ref) {
+    return eventsRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(EventsRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<EventsRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$eventsRemoteDataSourceHash() =>
+    r'897b9424ce9a5f75079dc45889193f14ec33a9e3';
+
+@ProviderFor(eventSyncRepository)
+final eventSyncRepositoryProvider = EventSyncRepositoryProvider._();
+
+final class EventSyncRepositoryProvider
+    extends
+        $FunctionalProvider<
+          EventSyncRepository,
+          EventSyncRepository,
+          EventSyncRepository
+        >
+    with $Provider<EventSyncRepository> {
+  EventSyncRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'eventSyncRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$eventSyncRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<EventSyncRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  EventSyncRepository create(Ref ref) {
+    return eventSyncRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(EventSyncRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<EventSyncRepository>(value),
+    );
+  }
+}
+
+String _$eventSyncRepositoryHash() =>
+    r'e37760b484a4a938b387bffb78243a79fc1ddcc6';
+
+@ProviderFor(eventTracker)
+final eventTrackerProvider = EventTrackerProvider._();
+
+final class EventTrackerProvider
+    extends $FunctionalProvider<EventTracker, EventTracker, EventTracker>
+    with $Provider<EventTracker> {
+  EventTrackerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'eventTrackerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$eventTrackerHash();
+
+  @$internal
+  @override
+  $ProviderElement<EventTracker> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  EventTracker create(Ref ref) {
+    return eventTracker(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(EventTracker value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<EventTracker>(value),
+    );
+  }
+}
+
+String _$eventTrackerHash() => r'094de3977ed409f9e79cdc0837078e8f881945ed';

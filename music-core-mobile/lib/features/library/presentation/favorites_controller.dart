@@ -51,6 +51,7 @@ class FavoritesController extends _$FavoritesController {
         state = AsyncData(currentList);
         return false;
       }
+      ref.read(eventTrackerProvider).trackUnfavorited(trackId: track.id);
       return true;
     } else {
       state = AsyncData([track, ...currentList]);
@@ -59,6 +60,7 @@ class FavoritesController extends _$FavoritesController {
         state = AsyncData(currentList);
         return false;
       }
+      ref.read(eventTrackerProvider).trackFavorited(trackId: track.id);
       return true;
     }
   }

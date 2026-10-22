@@ -9,7 +9,7 @@ final class AppConfig {
 
   static const String _defaultDevUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://192.168.1.17:8000',
+    defaultValue: 'http://localhost:8000',
   );
 
   const AppConfig.dev({
@@ -27,7 +27,7 @@ final class AppConfig {
          applicationName: 'Music Core',
          databaseName: 'music_core_app_prod',
          enableDiagnostics: false,
-         apiBaseUrl: apiBaseUrl ?? 'http://192.168.1.17:8000',
+         apiBaseUrl: apiBaseUrl ?? 'http://localhost:8000',
        );
 
   final String applicationName;

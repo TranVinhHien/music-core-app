@@ -34,7 +34,7 @@ final class PlaylistsControllerProvider
 }
 
 String _$playlistsControllerHash() =>
-    r'f3b18a055e929543eaeb8f82eed859ed659a809e';
+    r'91e3b224354952e29e43ca7942d264cef5d7cf34';
 
 abstract class _$PlaylistsController
     extends $AsyncNotifier<List<PlaylistEntity>> {

@@ -77,6 +77,10 @@ class PlaylistsController extends _$PlaylistsController {
     final repository = ref.read(libraryRepositoryProvider);
     final result = await repository.addTrackToPlaylist(playlistId, trackId);
     if (result is ResultOk) {
+      ref.read(eventTrackerProvider).trackAddedToPlaylist(
+            trackId: trackId,
+            playlistId: playlistId,
+          );
       ref.invalidateSelf();
       return true;
     }

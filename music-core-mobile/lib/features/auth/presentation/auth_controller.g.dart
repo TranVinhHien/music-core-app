@@ -36,7 +36,7 @@ final class AuthControllerProvider
   AuthController create() => AuthController();
 }
 
-String _$authControllerHash() => r'324761b85b79f49ccfe9b433ea04642046b9c76c';
+String _$authControllerHash() => r'45d83b3ed215910ac058eb8a6d04ea5825aa3d5d';
 
 /// Owns the app-wide authenticated user session and authentication actions.
 

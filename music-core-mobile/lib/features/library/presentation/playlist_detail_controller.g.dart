@@ -52,7 +52,7 @@ final class PlaylistDetailControllerProvider
 }
 
 String _$playlistDetailControllerHash() =>
-    r'd73bf136d36be063ca0bedd14dce7d62664ad1fc';
+    r'da175eb7946c3376c93e4e0ed4fa8c884de77995';
 
 final class PlaylistDetailControllerFamily extends $Family
     with
