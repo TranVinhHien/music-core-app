@@ -15,6 +15,10 @@ import '../features/auth/presentation/auth_controller.dart';
 import '../features/catalog/data/datasources/catalog_remote_data_source.dart';
 import '../features/catalog/data/repositories/catalog_repository_impl.dart';
 import '../features/catalog/domain/repositories/catalog_repository.dart';
+import '../features/events/data/datasources/events_remote_data_source.dart';
+import '../features/events/data/repositories/event_sync_repository_impl.dart';
+import '../features/events/domain/repositories/event_sync_repository.dart';
+import '../features/events/presentation/event_tracker.dart';
 import '../features/library/data/datasources/library_remote_data_source.dart';
 import '../features/library/data/repositories/library_repository_impl.dart';
 import '../features/library/domain/repositories/library_repository.dart';
@@ -34,12 +38,22 @@ AppConfig appConfig(Ref ref) =>
     throw StateError('AppConfig has not been provided');
 
 @Riverpod(keepAlive: true)
-SessionStorage sessionStorage(Ref ref) =>
-    SharedPreferencesSessionStorage(SharedPreferencesAsync());
+SessionStorage sessionStorage(Ref ref) {
+  try {
+    return SharedPreferencesSessionStorage(SharedPreferencesAsync());
+  } catch (_) {
+    return InMemorySessionStorage();
+  }
+}
 
 @Riverpod(keepAlive: true)
 ApiClient apiClient(Ref ref) {
-  final config = ref.watch(appConfigProvider);
+  AppConfig config;
+  try {
+    config = ref.watch(appConfigProvider);
+  } catch (_) {
+    config = const AppConfig.dev();
+  }
   final storage = ref.watch(sessionStorageProvider);
   return ApiClient(
     baseUrl: config.apiBaseUrl,
@@ -61,7 +75,7 @@ ApiClient apiClient(Ref ref) {
             'Accept': 'application/json',
           },
         ),
-      );
+      )..interceptors.add(ApiClient.createLoggingInterceptor());
 
       try {
         final res = await refreshDio.post<dynamic>(
@@ -177,3 +191,53 @@ TaskDatabase taskDatabase(Ref ref) {
 @Riverpod(keepAlive: true)
 TaskRepository taskRepository(Ref ref) =>
     TaskRepositoryImpl(ref.read(taskDatabaseProvider));
+
+@Riverpod(keepAlive: true)
+EventsRemoteDataSource eventsRemoteDataSource(Ref ref) =>
+    EventsRemoteDataSourceImpl(ref.watch(apiClientProvider));
+
+@Riverpod(keepAlive: true)
+EventSyncRepository eventSyncRepository(Ref ref) {
+  final storage = ref.watch(sessionStorageProvider);
+  return EventSyncRepositoryImpl(
+    db: ref.watch(musicDatabaseProvider),
+    remoteDataSource: ref.watch(eventsRemoteDataSourceProvider),
+    sessionIdProvider: () {
+      final cached = storage.cachedSessionId;
+      if (cached != null && cached.isNotEmpty) {
+        return cached;
+      }
+      try {
+        final authSession = ref.read(authControllerProvider).value;
+        if (authSession?.sessionId != null && authSession!.sessionId!.isNotEmpty) {
+          return authSession.sessionId;
+        }
+      } catch (_) {}
+      return null;
+    },
+  );
+}
+
+@Riverpod(keepAlive: true)
+EventTracker eventTracker(Ref ref) {
+  final storage = ref.watch(sessionStorageProvider);
+  final tracker = EventTracker(
+    repository: ref.watch(eventSyncRepositoryProvider),
+    sessionIdProvider: () {
+      final cached = storage.cachedSessionId;
+      if (cached != null && cached.isNotEmpty) {
+        return cached;
+      }
+      try {
+        final authSession = ref.read(authControllerProvider).value;
+        if (authSession?.sessionId != null && authSession!.sessionId!.isNotEmpty) {
+          return authSession.sessionId;
+        }
+      } catch (_) {}
+      return null;
+    },
+  );
+  ref.onDispose(tracker.dispose);
+  return tracker;
+}
+

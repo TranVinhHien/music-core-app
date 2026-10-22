@@ -8,6 +8,7 @@ import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/song_list_item.dart';
 import '../../catalog/domain/entities/track_entity.dart';
+import '../../events/domain/entities/client_event.dart';
 import '../../library/presentation/favorites_controller.dart';
 import '../../library/presentation/widgets/add_to_playlist_sheet.dart';
 import '../../player/presentation/now_playing_page.dart';
@@ -115,9 +116,14 @@ class _SongsPageState extends ConsumerState<SongsPage> {
                     );
                   },
                   onTap: () {
-                    ref
-                        .read(playerControllerProvider.notifier)
-                        .playTrack(track, queue: songs);
+                    final query = ref.read(songsQueryProvider);
+                    ref.read(playerControllerProvider.notifier).playTrack(
+                          track,
+                          queue: songs,
+                          source: query.isNotEmpty
+                              ? EventSourceModel(type: 'search', id: query)
+                              : const EventSourceModel(type: 'tracks'),
+                        );
                     NowPlayingPage.show(context);
                   },
                 );

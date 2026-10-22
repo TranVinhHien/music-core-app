@@ -6,6 +6,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/song_list_item.dart';
 import '../../catalog/domain/entities/track_entity.dart';
+import '../../events/domain/entities/client_event.dart';
 import '../../player/presentation/now_playing_page.dart';
 import '../../player/presentation/player_controller.dart';
 import 'offline_controller.dart';
@@ -149,6 +150,7 @@ class OfflineMusicPage extends ConsumerWidget {
                                   ref.read(playerControllerProvider.notifier).playTrack(
                                         tracks.first,
                                         queue: tracks,
+                                        source: const EventSourceModel(type: 'offline'),
                                       );
                                   NowPlayingPage.show(context);
                                 },
@@ -172,6 +174,7 @@ class OfflineMusicPage extends ConsumerWidget {
                                   ref.read(playerControllerProvider.notifier).playTrack(
                                         shuffled.first,
                                         queue: shuffled,
+                                        source: const EventSourceModel(type: 'offline'),
                                       );
                                   NowPlayingPage.show(context);
                                 },
@@ -200,6 +203,7 @@ class OfflineMusicPage extends ConsumerWidget {
                         ref.read(playerControllerProvider.notifier).playTrack(
                               track,
                               queue: tracks,
+                              source: const EventSourceModel(type: 'offline'),
                             );
                         NowPlayingPage.show(context);
                       },

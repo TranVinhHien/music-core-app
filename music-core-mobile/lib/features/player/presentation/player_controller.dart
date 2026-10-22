@@ -9,6 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../app/dependencies.dart';
 import '../../../core/utils/audio_url_resolver.dart';
 import '../../catalog/domain/entities/track_entity.dart';
+import '../../events/domain/entities/client_event.dart';
 import 'player_state.dart';
 
 part 'player_controller.g.dart';
@@ -19,6 +20,9 @@ class PlayerController extends _$PlayerController {
   StreamSubscription<ja.PlayerState>? _playerStateSub;
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<Duration?>? _durationSub;
+
+  EventSourceModel? _currentSource;
+  bool _isNaturalCompletion = false;
 
   @override
   PlayerState build() {
@@ -42,6 +46,16 @@ class PlayerController extends _$PlayerController {
       );
 
       if (jaState.processingState == ja.ProcessingState.completed) {
+        final current = state.currentTrack;
+        if (current != null) {
+          _isNaturalCompletion = true;
+          ref.read(eventTrackerProvider).trackCompleted(
+                trackId: current.id,
+                durationMs: state.duration.inMilliseconds,
+                listenedMs: state.position.inMilliseconds,
+                source: _currentSource,
+              );
+        }
         skipNext();
       }
     });
@@ -57,10 +71,17 @@ class PlayerController extends _$PlayerController {
     });
   }
 
-  Future<void> playTrack(TrackEntity track, {List<TrackEntity>? queue}) async {
+  Future<void> playTrack(
+    TrackEntity track, {
+    List<TrackEntity>? queue,
+    EventSourceModel? source,
+  }) async {
     final trackList = (queue != null && queue.isNotEmpty) ? queue : [track];
     final index = trackList.indexWhere((TrackEntity t) => t.id == track.id);
     final activeIndex = index >= 0 ? index : 0;
+
+    _currentSource = source ?? _currentSource;
+    _isNaturalCompletion = false;
 
     // Estimate initial duration from track durationMs if available
     final initialDuration = track.durationMs != null
@@ -76,6 +97,14 @@ class PlayerController extends _$PlayerController {
       isPlaying: true,
       isBuffering: true,
     );
+
+    // Track playback start event
+    ref.read(eventTrackerProvider).trackStarted(
+          trackId: track.id,
+          durationMs: track.durationMs ?? 0,
+          positionMs: 0,
+          source: _currentSource,
+        );
 
     try {
       final offlineRepo = ref.read(offlineRepositoryProvider);
@@ -120,13 +149,22 @@ class PlayerController extends _$PlayerController {
   Future<void> togglePlayPause() async {
     if (!state.hasTrack) return;
     if (_audioPlayer.playing) {
-      await _audioPlayer.pause();
+      await pause();
     } else {
-      await _audioPlayer.play();
+      await resume();
     }
   }
 
   Future<void> pause() async {
+    final current = state.currentTrack;
+    if (current != null) {
+      ref.read(eventTrackerProvider).trackPaused(
+            trackId: current.id,
+            positionMs: state.position.inMilliseconds,
+            listenedMs: state.position.inMilliseconds,
+            source: _currentSource,
+          );
+    }
     await _audioPlayer.pause();
   }
 
@@ -135,37 +173,86 @@ class PlayerController extends _$PlayerController {
   }
 
   Future<void> seek(Duration position) async {
+    final current = state.currentTrack;
+    if (current != null) {
+      ref.read(eventTrackerProvider).trackSeeked(
+            trackId: current.id,
+            fromPositionMs: state.position.inMilliseconds,
+            toPositionMs: position.inMilliseconds,
+            source: _currentSource,
+          );
+    }
     await _audioPlayer.seek(position);
   }
 
   Future<void> skipNext() async {
     if (state.queue.isEmpty) return;
 
+    final current = state.currentTrack;
     int nextIndex = state.currentIndex + 1;
     if (state.isShuffle && state.queue.length > 1) {
       nextIndex = (state.currentIndex + 1) % state.queue.length;
     }
 
-    if (nextIndex < state.queue.length) {
-      final nextTrack = state.queue[nextIndex];
-      await playTrack(nextTrack, queue: state.queue);
+    final TrackEntity? nextTrack =
+        nextIndex < state.queue.length ? state.queue[nextIndex] : null;
+
+    if (!_isNaturalCompletion && current != null) {
+      ref.read(eventTrackerProvider).trackSkipped(
+            trackId: current.id,
+            durationMs: state.duration.inMilliseconds,
+            positionMs: state.position.inMilliseconds,
+            listenedMs: state.position.inMilliseconds,
+            nextTrackId: nextTrack?.id,
+            source: _currentSource,
+          );
+    }
+    _isNaturalCompletion = false;
+
+    if (nextTrack != null) {
+      await playTrack(nextTrack, queue: state.queue, source: _currentSource);
     } else if (state.loopMode == ja.LoopMode.all) {
-      await playTrack(state.queue.first, queue: state.queue);
+      await playTrack(state.queue.first, queue: state.queue, source: _currentSource);
     }
   }
 
   Future<void> skipPrevious() async {
     if (state.queue.isEmpty) return;
 
+    final current = state.currentTrack;
     if (state.position.inSeconds > 3) {
+      if (current != null) {
+        ref.read(eventTrackerProvider).trackReplayed(
+              trackId: current.id,
+              positionMs: state.position.inMilliseconds,
+              source: _currentSource,
+            );
+      }
       await seek(Duration.zero);
       return;
     }
 
     if (state.currentIndex > 0) {
       final prevTrack = state.queue[state.currentIndex - 1];
-      await playTrack(prevTrack, queue: state.queue);
+      if (current != null) {
+        ref.read(eventTrackerProvider).trackSkipped(
+              trackId: current.id,
+              durationMs: state.duration.inMilliseconds,
+              positionMs: state.position.inMilliseconds,
+              listenedMs: state.position.inMilliseconds,
+              nextTrackId: prevTrack.id,
+              source: _currentSource,
+            );
+      }
+      await playTrack(prevTrack, queue: state.queue, source: _currentSource);
     } else {
+      if (current != null) {
+        ref.read(eventTrackerProvider).trackReplayed(
+              trackId: current.id,
+              positionMs: state.position.inMilliseconds,
+              source: _currentSource,
+            );
+      }
       await seek(Duration.zero);
     }
   }

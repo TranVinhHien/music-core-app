@@ -74,6 +74,10 @@ class PlaylistDetailController extends _$PlaylistDetailController {
       state = AsyncData(current);
       return false;
     }
+    ref.read(eventTrackerProvider).trackRemovedFromPlaylist(
+          trackId: trackId,
+          playlistId: playlistId,
+        );
     ref.invalidate(playlistsControllerProvider);
     return true;
   }

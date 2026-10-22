@@ -31,12 +31,24 @@ class SongsController extends _$SongsController {
 
     switch (result) {
       case ResultOk(value: final tracks):
+        if (query.trim().isNotEmpty) {
+          ref.read(eventTrackerProvider).searchPerformed(
+                query: query.trim(),
+                resultsCount: tracks.length,
+              );
+        }
         try {
           final offlineRepo = ref.read(offlineRepositoryProvider);
           unawaited(offlineRepo.cacheCatalogTracks(tracks));
         } catch (_) {}
         return tracks;
       case ResultError(failure: final failure):
+        if (query.trim().isNotEmpty) {
+          ref.read(eventTrackerProvider).searchPerformed(
+                query: query.trim(),
+                resultsCount: 0,
+              );
+        }
         try {
           final offlineRepo = ref.read(offlineRepositoryProvider);
           final downloaded = await offlineRepo.getDownloadedTracks();

@@ -1738,6 +1738,564 @@ class LocalFavoritesCompanion extends UpdateCompanion<LocalFavorite> {
   }
 }
 
+class $PendingEventsTable extends PendingEvents
+    with TableInfo<$PendingEventsTable, PendingEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PendingEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  @override
+  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
+    'event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eventTypeMeta = const VerificationMeta(
+    'eventType',
+  );
+  @override
+  late final GeneratedColumn<String> eventType = GeneratedColumn<String>(
+    'event_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+    'occurred_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _trackIdMeta = const VerificationMeta(
+    'trackId',
+  );
+  @override
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
+    'track_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceJsonMeta = const VerificationMeta(
+    'sourceJson',
+  );
+  @override
+  late final GeneratedColumn<String> sourceJson = GeneratedColumn<String>(
+    'source_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _propertiesJsonMeta = const VerificationMeta(
+    'propertiesJson',
+  );
+  @override
+  late final GeneratedColumn<String> propertiesJson = GeneratedColumn<String>(
+    'properties_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _schemaVersionMeta = const VerificationMeta(
+    'schemaVersion',
+  );
+  @override
+  late final GeneratedColumn<int> schemaVersion = GeneratedColumn<int>(
+    'schema_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    eventId,
+    eventType,
+    occurredAt,
+    sessionId,
+    trackId,
+    sourceJson,
+    propertiesJson,
+    schemaVersion,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('event_id')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIdMeta);
+    }
+    if (data.containsKey('event_type')) {
+      context.handle(
+        _eventTypeMeta,
+        eventType.isAcceptableOrUnknown(data['event_type']!, _eventTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventTypeMeta);
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    }
+    if (data.containsKey('track_id')) {
+      context.handle(
+        _trackIdMeta,
+        trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta),
+      );
+    }
+    if (data.containsKey('source_json')) {
+      context.handle(
+        _sourceJsonMeta,
+        sourceJson.isAcceptableOrUnknown(data['source_json']!, _sourceJsonMeta),
+      );
+    }
+    if (data.containsKey('properties_json')) {
+      context.handle(
+        _propertiesJsonMeta,
+        propertiesJson.isAcceptableOrUnknown(
+          data['properties_json']!,
+          _propertiesJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_propertiesJsonMeta);
+    }
+    if (data.containsKey('schema_version')) {
+      context.handle(
+        _schemaVersionMeta,
+        schemaVersion.isAcceptableOrUnknown(
+          data['schema_version']!,
+          _schemaVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {eventId};
+  @override
+  PendingEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingEvent(
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_id'],
+      )!,
+      eventType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_type'],
+      )!,
+      occurredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}occurred_at'],
+      )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      ),
+      trackId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}track_id'],
+      ),
+      sourceJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_json'],
+      ),
+      propertiesJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}properties_json'],
+      )!,
+      schemaVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}schema_version'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PendingEventsTable createAlias(String alias) {
+    return $PendingEventsTable(attachedDatabase, alias);
+  }
+}
+
+class PendingEvent extends DataClass implements Insertable<PendingEvent> {
+  final String eventId;
+  final String eventType;
+  final DateTime occurredAt;
+  final String? sessionId;
+  final String? trackId;
+  final String? sourceJson;
+  final String propertiesJson;
+  final int schemaVersion;
+  final DateTime createdAt;
+  const PendingEvent({
+    required this.eventId,
+    required this.eventType,
+    required this.occurredAt,
+    this.sessionId,
+    this.trackId,
+    this.sourceJson,
+    required this.propertiesJson,
+    required this.schemaVersion,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['event_id'] = Variable<String>(eventId);
+    map['event_type'] = Variable<String>(eventType);
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    if (!nullToAbsent || sessionId != null) {
+      map['session_id'] = Variable<String>(sessionId);
+    }
+    if (!nullToAbsent || trackId != null) {
+      map['track_id'] = Variable<String>(trackId);
+    }
+    if (!nullToAbsent || sourceJson != null) {
+      map['source_json'] = Variable<String>(sourceJson);
+    }
+    map['properties_json'] = Variable<String>(propertiesJson);
+    map['schema_version'] = Variable<int>(schemaVersion);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  factory PendingEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingEvent(
+      eventId: serializer.fromJson<String>(json['eventId']),
+      eventType: serializer.fromJson<String>(json['eventType']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      sessionId: serializer.fromJson<String?>(json['sessionId']),
+      trackId: serializer.fromJson<String?>(json['trackId']),
+      sourceJson: serializer.fromJson<String?>(json['sourceJson']),
+      propertiesJson: serializer.fromJson<String>(json['propertiesJson']),
+      schemaVersion: serializer.fromJson<int>(json['schemaVersion']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'eventId': serializer.toJson<String>(eventId),
+      'eventType': serializer.toJson<String>(eventType),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'sessionId': serializer.toJson<String?>(sessionId),
+      'trackId': serializer.toJson<String?>(trackId),
+      'sourceJson': serializer.toJson<String?>(sourceJson),
+      'propertiesJson': serializer.toJson<String>(propertiesJson),
+      'schemaVersion': serializer.toJson<int>(schemaVersion),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  PendingEvent copyWith({
+    String? eventId,
+    String? eventType,
+    DateTime? occurredAt,
+    Value<String?> sessionId = const Value.absent(),
+    Value<String?> trackId = const Value.absent(),
+    Value<String?> sourceJson = const Value.absent(),
+    String? propertiesJson,
+    int? schemaVersion,
+    DateTime? createdAt,
+  }) => PendingEvent(
+    eventId: eventId ?? this.eventId,
+    eventType: eventType ?? this.eventType,
+    occurredAt: occurredAt ?? this.occurredAt,
+    sessionId: sessionId.present ? sessionId.value : this.sessionId,
+    trackId: trackId.present ? trackId.value : this.trackId,
+    sourceJson: sourceJson.present ? sourceJson.value : this.sourceJson,
+    propertiesJson: propertiesJson ?? this.propertiesJson,
+    schemaVersion: schemaVersion ?? this.schemaVersion,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  PendingEvent copyWithCompanion(PendingEventsCompanion data) {
+    return PendingEvent(
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      eventType: data.eventType.present ? data.eventType.value : this.eventType,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      trackId: data.trackId.present ? data.trackId.value : this.trackId,
+      sourceJson: data.sourceJson.present
+          ? data.sourceJson.value
+          : this.sourceJson,
+      propertiesJson: data.propertiesJson.present
+          ? data.propertiesJson.value
+          : this.propertiesJson,
+      schemaVersion: data.schemaVersion.present
+          ? data.schemaVersion.value
+          : this.schemaVersion,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingEvent(')
+          ..write('eventId: $eventId, ')
+          ..write('eventType: $eventType, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('trackId: $trackId, ')
+          ..write('sourceJson: $sourceJson, ')
+          ..write('propertiesJson: $propertiesJson, ')
+          ..write('schemaVersion: $schemaVersion, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    eventId,
+    eventType,
+    occurredAt,
+    sessionId,
+    trackId,
+    sourceJson,
+    propertiesJson,
+    schemaVersion,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingEvent &&
+          other.eventId == this.eventId &&
+          other.eventType == this.eventType &&
+          other.occurredAt == this.occurredAt &&
+          other.sessionId == this.sessionId &&
+          other.trackId == this.trackId &&
+          other.sourceJson == this.sourceJson &&
+          other.propertiesJson == this.propertiesJson &&
+          other.schemaVersion == this.schemaVersion &&
+          other.createdAt == this.createdAt);
+}
+
+class PendingEventsCompanion extends UpdateCompanion<PendingEvent> {
+  final Value<String> eventId;
+  final Value<String> eventType;
+  final Value<DateTime> occurredAt;
+  final Value<String?> sessionId;
+  final Value<String?> trackId;
+  final Value<String?> sourceJson;
+  final Value<String> propertiesJson;
+  final Value<int> schemaVersion;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const PendingEventsCompanion({
+    this.eventId = const Value.absent(),
+    this.eventType = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.trackId = const Value.absent(),
+    this.sourceJson = const Value.absent(),
+    this.propertiesJson = const Value.absent(),
+    this.schemaVersion = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PendingEventsCompanion.insert({
+    required String eventId,
+    required String eventType,
+    required DateTime occurredAt,
+    this.sessionId = const Value.absent(),
+    this.trackId = const Value.absent(),
+    this.sourceJson = const Value.absent(),
+    required String propertiesJson,
+    this.schemaVersion = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : eventId = Value(eventId),
+       eventType = Value(eventType),
+       occurredAt = Value(occurredAt),
+       propertiesJson = Value(propertiesJson);
+  static Insertable<PendingEvent> custom({
+    Expression<String>? eventId,
+    Expression<String>? eventType,
+    Expression<DateTime>? occurredAt,
+    Expression<String>? sessionId,
+    Expression<String>? trackId,
+    Expression<String>? sourceJson,
+    Expression<String>? propertiesJson,
+    Expression<int>? schemaVersion,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (eventId != null) 'event_id': eventId,
+      if (eventType != null) 'event_type': eventType,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (sessionId != null) 'session_id': sessionId,
+      if (trackId != null) 'track_id': trackId,
+      if (sourceJson != null) 'source_json': sourceJson,
+      if (propertiesJson != null) 'properties_json': propertiesJson,
+      if (schemaVersion != null) 'schema_version': schemaVersion,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PendingEventsCompanion copyWith({
+    Value<String>? eventId,
+    Value<String>? eventType,
+    Value<DateTime>? occurredAt,
+    Value<String?>? sessionId,
+    Value<String?>? trackId,
+    Value<String?>? sourceJson,
+    Value<String>? propertiesJson,
+    Value<int>? schemaVersion,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return PendingEventsCompanion(
+      eventId: eventId ?? this.eventId,
+      eventType: eventType ?? this.eventType,
+      occurredAt: occurredAt ?? this.occurredAt,
+      sessionId: sessionId ?? this.sessionId,
+      trackId: trackId ?? this.trackId,
+      sourceJson: sourceJson ?? this.sourceJson,
+      propertiesJson: propertiesJson ?? this.propertiesJson,
+      schemaVersion: schemaVersion ?? this.schemaVersion,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (eventId.present) {
+      map['event_id'] = Variable<String>(eventId.value);
+    }
+    if (eventType.present) {
+      map['event_type'] = Variable<String>(eventType.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (trackId.present) {
+      map['track_id'] = Variable<String>(trackId.value);
+    }
+    if (sourceJson.present) {
+      map['source_json'] = Variable<String>(sourceJson.value);
+    }
+    if (propertiesJson.present) {
+      map['properties_json'] = Variable<String>(propertiesJson.value);
+    }
+    if (schemaVersion.present) {
+      map['schema_version'] = Variable<int>(schemaVersion.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingEventsCompanion(')
+          ..write('eventId: $eventId, ')
+          ..write('eventType: $eventType, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('trackId: $trackId, ')
+          ..write('sourceJson: $sourceJson, ')
+          ..write('propertiesJson: $propertiesJson, ')
+          ..write('schemaVersion: $schemaVersion, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$MusicDatabase extends GeneratedDatabase {
   _$MusicDatabase(QueryExecutor e) : super(e);
   $MusicDatabaseManager get managers => $MusicDatabaseManager(this);
@@ -1746,6 +2304,7 @@ abstract class _$MusicDatabase extends GeneratedDatabase {
   late final $LocalPlaylistTracksTable localPlaylistTracks =
       $LocalPlaylistTracksTable(this);
   late final $LocalFavoritesTable localFavorites = $LocalFavoritesTable(this);
+  late final $PendingEventsTable pendingEvents = $PendingEventsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1755,6 +2314,7 @@ abstract class _$MusicDatabase extends GeneratedDatabase {
     localPlaylists,
     localPlaylistTracks,
     localFavorites,
+    pendingEvents,
   ];
 }
 
@@ -2764,6 +3324,301 @@ typedef $$LocalFavoritesTableProcessedTableManager =
       LocalFavorite,
       PrefetchHooks Function()
     >;
+typedef $$PendingEventsTableCreateCompanionBuilder =
+    PendingEventsCompanion Function({
+      required String eventId,
+      required String eventType,
+      required DateTime occurredAt,
+      Value<String?> sessionId,
+      Value<String?> trackId,
+      Value<String?> sourceJson,
+      required String propertiesJson,
+      Value<int> schemaVersion,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$PendingEventsTableUpdateCompanionBuilder =
+    PendingEventsCompanion Function({
+      Value<String> eventId,
+      Value<String> eventType,
+      Value<DateTime> occurredAt,
+      Value<String?> sessionId,
+      Value<String?> trackId,
+      Value<String?> sourceJson,
+      Value<String> propertiesJson,
+      Value<int> schemaVersion,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$PendingEventsTableFilterComposer
+    extends Composer<_$MusicDatabase, $PendingEventsTable> {
+  $$PendingEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventType => $composableBuilder(
+    column: $table.eventType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get trackId => $composableBuilder(
+    column: $table.trackId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceJson => $composableBuilder(
+    column: $table.sourceJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get propertiesJson => $composableBuilder(
+    column: $table.propertiesJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get schemaVersion => $composableBuilder(
+    column: $table.schemaVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PendingEventsTableOrderingComposer
+    extends Composer<_$MusicDatabase, $PendingEventsTable> {
+  $$PendingEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventType => $composableBuilder(
+    column: $table.eventType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get trackId => $composableBuilder(
+    column: $table.trackId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceJson => $composableBuilder(
+    column: $table.sourceJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get propertiesJson => $composableBuilder(
+    column: $table.propertiesJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get schemaVersion => $composableBuilder(
+    column: $table.schemaVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PendingEventsTableAnnotationComposer
+    extends Composer<_$MusicDatabase, $PendingEventsTable> {
+  $$PendingEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get eventId =>
+      $composableBuilder(column: $table.eventId, builder: (column) => column);
+
+  GeneratedColumn<String> get eventType =>
+      $composableBuilder(column: $table.eventType, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sessionId =>
+      $composableBuilder(column: $table.sessionId, builder: (column) => column);
+
+  GeneratedColumn<String> get trackId =>
+      $composableBuilder(column: $table.trackId, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceJson => $composableBuilder(
+    column: $table.sourceJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get propertiesJson => $composableBuilder(
+    column: $table.propertiesJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get schemaVersion => $composableBuilder(
+    column: $table.schemaVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$PendingEventsTableTableManager
+    extends
+        RootTableManager<
+          _$MusicDatabase,
+          $PendingEventsTable,
+          PendingEvent,
+          $$PendingEventsTableFilterComposer,
+          $$PendingEventsTableOrderingComposer,
+          $$PendingEventsTableAnnotationComposer,
+          $$PendingEventsTableCreateCompanionBuilder,
+          $$PendingEventsTableUpdateCompanionBuilder,
+          (
+            PendingEvent,
+            BaseReferences<_$MusicDatabase, $PendingEventsTable, PendingEvent>,
+          ),
+          PendingEvent,
+          PrefetchHooks Function()
+        > {
+  $$PendingEventsTableTableManager(
+    _$MusicDatabase db,
+    $PendingEventsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PendingEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PendingEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PendingEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> eventId = const Value.absent(),
+                Value<String> eventType = const Value.absent(),
+                Value<DateTime> occurredAt = const Value.absent(),
+                Value<String?> sessionId = const Value.absent(),
+                Value<String?> trackId = const Value.absent(),
+                Value<String?> sourceJson = const Value.absent(),
+                Value<String> propertiesJson = const Value.absent(),
+                Value<int> schemaVersion = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PendingEventsCompanion(
+                eventId: eventId,
+                eventType: eventType,
+                occurredAt: occurredAt,
+                sessionId: sessionId,
+                trackId: trackId,
+                sourceJson: sourceJson,
+                propertiesJson: propertiesJson,
+                schemaVersion: schemaVersion,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String eventId,
+                required String eventType,
+                required DateTime occurredAt,
+                Value<String?> sessionId = const Value.absent(),
+                Value<String?> trackId = const Value.absent(),
+                Value<String?> sourceJson = const Value.absent(),
+                required String propertiesJson,
+                Value<int> schemaVersion = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PendingEventsCompanion.insert(
+                eventId: eventId,
+                eventType: eventType,
+                occurredAt: occurredAt,
+                sessionId: sessionId,
+                trackId: trackId,
+                sourceJson: sourceJson,
+                propertiesJson: propertiesJson,
+                schemaVersion: schemaVersion,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PendingEventsTable, PendingEvent>(table),
+                  BaseReferences<
+                    _$MusicDatabase,
+                    $PendingEventsTable,
+                    PendingEvent
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PendingEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MusicDatabase,
+      $PendingEventsTable,
+      PendingEvent,
+      $$PendingEventsTableFilterComposer,
+      $$PendingEventsTableOrderingComposer,
+      $$PendingEventsTableAnnotationComposer,
+      $$PendingEventsTableCreateCompanionBuilder,
+      $$PendingEventsTableUpdateCompanionBuilder,
+      (
+        PendingEvent,
+        BaseReferences<_$MusicDatabase, $PendingEventsTable, PendingEvent>,
+      ),
+      PendingEvent,
+      PrefetchHooks Function()
+    >;
 
 class $MusicDatabaseManager {
   final _$MusicDatabase _db;
@@ -2776,4 +3631,6 @@ class $MusicDatabaseManager {
       $$LocalPlaylistTracksTableTableManager(_db, _db.localPlaylistTracks);
   $$LocalFavoritesTableTableManager get localFavorites =>
       $$LocalFavoritesTableTableManager(_db, _db.localFavorites);
+  $$PendingEventsTableTableManager get pendingEvents =>
+      $$PendingEventsTableTableManager(_db, _db.pendingEvents);
 }

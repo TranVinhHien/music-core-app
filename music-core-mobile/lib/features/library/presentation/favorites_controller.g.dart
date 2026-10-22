@@ -34,7 +34,7 @@ final class FavoritesControllerProvider
 }
 
 String _$favoritesControllerHash() =>
-    r'ef8e3641ae0a8581737e3c6e5c53f7299ef8931d';
+    r'00b1a9ec60cdaf65c3e280af7235b7043d180b69';
 
 abstract class _$FavoritesController extends $AsyncNotifier<List<TrackEntity>> {
   FutureOr<List<TrackEntity>> build();

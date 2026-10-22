@@ -63,3 +63,28 @@ final class SharedPreferencesSessionStorage implements SessionStorage {
     await _preferences.remove(_sessionKey);
   }
 }
+
+final class InMemorySessionStorage implements SessionStorage {
+  InMemorySessionStorage([this._session]);
+
+  AuthSession? _session;
+
+  @override
+  String? get cachedAccessToken => _session?.accessToken;
+
+  @override
+  String? get cachedSessionId => _session?.sessionId;
+
+  @override
+  Future<AuthSession?> readSession() async => _session;
+
+  @override
+  Future<void> writeSession(AuthSession session) async {
+    _session = session;
+  }
+
+  @override
+  Future<void> clearSession() async {
+    _session = null;
+  }
+}

@@ -6,6 +6,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/song_list_item.dart';
+import '../../events/domain/entities/client_event.dart';
 import '../../player/presentation/now_playing_page.dart';
 import '../../player/presentation/player_controller.dart';
 import 'favorites_controller.dart';
@@ -68,9 +69,11 @@ class FavoritesPage extends ConsumerWidget {
                     );
                   },
                   onTap: () {
-                    ref
-                        .read(playerControllerProvider.notifier)
-                        .playTrack(track, queue: favorites);
+                    ref.read(playerControllerProvider.notifier).playTrack(
+                          track,
+                          queue: favorites,
+                          source: const EventSourceModel(type: 'favorites'),
+                        );
                     NowPlayingPage.show(context);
                   },
                 );

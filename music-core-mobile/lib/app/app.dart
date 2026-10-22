@@ -12,6 +12,9 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Eagerly initialize event tracker and its 1-minute periodic sync loop
+    ref.watch(eventTrackerProvider);
+
     final config = ref.watch(appConfigProvider);
     return MaterialApp.router(
       onGenerateTitle: (context) => config.applicationName,

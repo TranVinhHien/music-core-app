@@ -5,6 +5,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'tables/local_favorites_table.dart';
 import 'tables/local_playlists_table.dart';
 import 'tables/local_tracks_table.dart';
+import 'tables/pending_events_table.dart';
 
 part 'music_database.g.dart';
 
@@ -14,6 +15,7 @@ part 'music_database.g.dart';
   LocalPlaylists,
   LocalPlaylistTracks,
   LocalFavorites,
+  PendingEvents,
 ])
 class MusicDatabase extends _$MusicDatabase {
   MusicDatabase({required String name}) : super(driftDatabase(name: name));
@@ -22,7 +24,51 @@ class MusicDatabase extends _$MusicDatabase {
   MusicDatabase.forTesting() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (Migrator m) async {
+          await m.createAll();
+        },
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 2) {
+            await m.createTable(pendingEvents);
+          }
+        },
+      );
+
+  // ---------------------------------------------------------------------------
+  // Pending Listening Events Operations
+  // ---------------------------------------------------------------------------
+
+  Future<void> insertPendingEvent(PendingEventsCompanion event) async {
+    await into(pendingEvents).insertOnConflictUpdate(event);
+  }
+
+  Future<List<PendingEvent>> getPendingEvents({int limit = 100}) {
+    return (select(pendingEvents)
+          ..orderBy([
+            (PendingEvents t) =>
+                OrderingTerm(expression: t.occurredAt, mode: OrderingMode.asc),
+          ])
+          ..limit(limit))
+        .get();
+  }
+
+  Future<int> deletePendingEvents(List<String> eventIds) {
+    if (eventIds.isEmpty) return Future.value(0);
+    return (delete(pendingEvents)
+          ..where((PendingEvents t) => t.eventId.isIn(eventIds)))
+        .go();
+  }
+
+  Future<int> countPendingEvents() async {
+    final countExp = pendingEvents.eventId.count();
+    final query = selectOnly(pendingEvents)..addColumns([countExp]);
+    final row = await query.getSingle();
+    return row.read(countExp) ?? 0;
+  }
 
   // ---------------------------------------------------------------------------
   // Tracks & Downloads Operations
