@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Track } from '@prisma/client';
+import { Prisma, Track, TrackAudioAnalysis } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import {
   FindTracksResult,
   ITrackRepository,
 } from './track.repository.interface';
 import { QueryTrackDto } from '../dto/query-track.dto';
+import { SaveTrackAudioAnalysisDto } from '../dto/save-track-audio-analysis.dto';
 
 @Injectable()
 export class PrismaTrackRepository implements ITrackRepository {
@@ -74,6 +75,7 @@ export class PrismaTrackRepository implements ITrackRepository {
           include: { genre: true },
         },
         trackSources: true,
+        audioAnalysis: true,
       },
     });
   }
@@ -88,6 +90,7 @@ export class PrismaTrackRepository implements ITrackRepository {
       artistId,
       genreId,
       status,
+      analysisStatus,
     } = query;
     const skip = (page - 1) * limit;
 
@@ -107,6 +110,16 @@ export class PrismaTrackRepository implements ITrackRepository {
     if (search) {
       where.title = { contains: search, mode: 'insensitive' };
     }
+    if (analysisStatus) {
+      if (analysisStatus === 'PENDING') {
+        where.OR = [
+          { audioAnalysis: null },
+          { audioAnalysis: { analysisStatus: 'PENDING' } },
+        ];
+      } else {
+        where.audioAnalysis = { analysisStatus };
+      }
+    }
 
     const [items, total] = await Promise.all([
       this.prisma.track.findMany({
@@ -120,6 +133,7 @@ export class PrismaTrackRepository implements ITrackRepository {
             include: { artist: true },
             orderBy: { position: 'asc' },
           },
+          audioAnalysis: true,
         },
       }),
       this.prisma.track.count({ where }),
@@ -188,6 +202,82 @@ export class PrismaTrackRepository implements ITrackRepository {
   async delete(id: string): Promise<Track> {
     return this.prisma.track.delete({
       where: { id },
+    });
+  }
+
+  async upsertAudioAnalysis(
+    trackId: string,
+    data: SaveTrackAudioAnalysisDto,
+  ): Promise<TrackAudioAnalysis> {
+    const {
+      cueInMs,
+      cueOutMs,
+      durationMs,
+      bpm,
+      firstDownbeatMs,
+      downbeats,
+      key,
+      scale,
+      camelotKey,
+      energy,
+      loudnessLufs,
+      recommendedTransition,
+      recommendedCrossfadeMs,
+      analysisStatus,
+      errorMessage,
+    } = data;
+
+    return this.prisma.$transaction(async (tx) => {
+      const analysis = await tx.trackAudioAnalysis.upsert({
+        where: { trackId },
+        create: {
+          trackId,
+          cueInMs,
+          cueOutMs,
+          durationMs,
+          bpm,
+          firstDownbeatMs,
+          downbeats: downbeats ?? undefined,
+          key,
+          scale,
+          camelotKey,
+          energy,
+          loudnessLufs,
+          recommendedTransition,
+          recommendedCrossfadeMs,
+          analysisStatus: analysisStatus || 'COMPLETED',
+          errorMessage,
+          analyzedAt: new Date(),
+        },
+        update: {
+          cueInMs,
+          cueOutMs,
+          durationMs,
+          bpm,
+          firstDownbeatMs,
+          downbeats: downbeats ?? undefined,
+          key,
+          scale,
+          camelotKey,
+          energy,
+          loudnessLufs,
+          recommendedTransition,
+          recommendedCrossfadeMs,
+          analysisStatus: analysisStatus || 'COMPLETED',
+          errorMessage,
+          analyzedAt: new Date(),
+        },
+      });
+
+      // Update track durationMs if available
+      if (durationMs) {
+        await tx.track.update({
+          where: { id: trackId },
+          data: { durationMs },
+        });
+      }
+
+      return analysis;
     });
   }
 }

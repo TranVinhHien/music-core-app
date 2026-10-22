@@ -16,6 +16,7 @@ import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { QueryTrackDto } from './dto/query-track.dto';
+import { SaveTrackAudioAnalysisDto } from './dto/save-track-audio-analysis.dto';
 
 @ApiTags('Tracks')
 @Controller('tracks')
@@ -49,6 +50,16 @@ export class TracksController {
     @Body() dto: UpdateTrackDto,
   ) {
     return this.tracksService.update(id, dto);
+  }
+
+  @Put(':id/audio-analysis')
+  @ApiOperation({ summary: 'Save or update track audio transition analysis' })
+  @ApiResponse({ status: 200, description: 'Track audio analysis saved successfully.' })
+  saveAudioAnalysis(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SaveTrackAudioAnalysisDto,
+  ) {
+    return this.tracksService.saveAudioAnalysis(id, dto);
   }
 
   @Delete(':id')

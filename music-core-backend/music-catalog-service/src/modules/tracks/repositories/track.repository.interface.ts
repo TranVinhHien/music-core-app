@@ -1,5 +1,6 @@
-import { Prisma, Track } from '@prisma/client';
+import { Prisma, Track, TrackAudioAnalysis } from '@prisma/client';
 import { QueryTrackDto } from '../dto/query-track.dto';
+import { SaveTrackAudioAnalysisDto } from '../dto/save-track-audio-analysis.dto';
 
 export interface FindTracksResult {
   items: Track[];
@@ -26,4 +27,8 @@ export interface ITrackRepository {
     sources?: { source: string; externalId: string; externalUrl?: string }[],
   ): Promise<Track>;
   delete(id: string): Promise<Track>;
+  upsertAudioAnalysis(
+    trackId: string,
+    data: SaveTrackAudioAnalysisDto,
+  ): Promise<TrackAudioAnalysis>;
 }

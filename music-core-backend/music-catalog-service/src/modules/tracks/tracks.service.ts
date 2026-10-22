@@ -6,6 +6,7 @@ import {
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { QueryTrackDto } from './dto/query-track.dto';
+import { SaveTrackAudioAnalysisDto } from './dto/save-track-audio-analysis.dto';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { slugify } from '../../common/utils/text.util';
 
@@ -76,5 +77,10 @@ export class TracksService {
   async remove(id: string) {
     await this.findOne(id);
     return this.trackRepository.delete(id);
+  }
+
+  async saveAudioAnalysis(id: string, dto: SaveTrackAudioAnalysisDto) {
+    await this.findOne(id);
+    return this.trackRepository.upsertAudioAnalysis(id, dto);
   }
 }
