@@ -169,7 +169,7 @@ def handle_call_tool(name: str, arguments: Dict[str, Any]) -> Any:
             file_url=up["url"],
             album_title=meta.get("album"),
             cover_image_url=meta.get("cover_url"),
-            duration_ms=meta.get("duration_ms"),
+            duration_ms=dl.get("actual_duration_ms") or meta.get("duration_ms"),
             release_date=meta.get("release_date"),
             track_number=meta.get("track_number"),
             disc_number=meta.get("disc_number"),

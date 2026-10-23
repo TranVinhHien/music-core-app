@@ -14,6 +14,8 @@ class TrackEntity {
     this.localFilePath,
     this.fileSizeBytes,
     this.isDownloaded = false,
+    this.cueInMs,
+    this.cueOutMs,
   });
 
   final String id;
@@ -26,6 +28,8 @@ class TrackEntity {
   final String? localFilePath;
   final int? fileSizeBytes;
   final bool isDownloaded;
+  final int? cueInMs;
+  final int? cueOutMs;
 
   TrackEntity copyWith({
     String? id,
@@ -38,6 +42,8 @@ class TrackEntity {
     String? localFilePath,
     int? fileSizeBytes,
     bool? isDownloaded,
+    int? cueInMs,
+    int? cueOutMs,
   }) {
     return TrackEntity(
       id: id ?? this.id,
@@ -50,6 +56,8 @@ class TrackEntity {
       localFilePath: localFilePath ?? this.localFilePath,
       fileSizeBytes: fileSizeBytes ?? this.fileSizeBytes,
       isDownloaded: isDownloaded ?? this.isDownloaded,
+      cueInMs: cueInMs ?? this.cueInMs,
+      cueOutMs: cueOutMs ?? this.cueOutMs,
     );
   }
 
@@ -95,6 +103,18 @@ class TrackEntity {
     }
     coverImageUrl ??= json['coverImageUrl'] as String? ?? json['cover_image_url'] as String?;
 
+    final audioAnalysis = json['audioAnalysis'] as Map<String, dynamic>?;
+    final cueInMs = audioAnalysis?['cueInMs'] as int? ??
+        audioAnalysis?['cue_in_ms'] as int? ??
+        audioAnalysis?['firstDownbeatMs'] as int? ??
+        audioAnalysis?['first_downbeat_ms'] as int? ??
+        json['cueInMs'] as int? ??
+        json['cue_in_ms'] as int?;
+    final cueOutMs = audioAnalysis?['cueOutMs'] as int? ??
+        audioAnalysis?['cue_out_ms'] as int? ??
+        json['cueOutMs'] as int? ??
+        json['cue_out_ms'] as int?;
+
     return TrackEntity(
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? 'Chưa có tiêu đề',
@@ -103,6 +123,8 @@ class TrackEntity {
       artistName: artistName,
       albumTitle: albumTitle,
       coverImageUrl: coverImageUrl,
+      cueInMs: cueInMs,
+      cueOutMs: cueOutMs,
     );
   }
 
@@ -114,6 +136,8 @@ class TrackEntity {
         'artist_name': artistName,
         'album_title': albumTitle,
         'cover_image_url': coverImageUrl,
+        'cue_in_ms': cueInMs,
+        'cue_out_ms': cueOutMs,
       };
 
   @override

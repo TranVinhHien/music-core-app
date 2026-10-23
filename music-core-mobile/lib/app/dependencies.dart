@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/database/music_database.dart';
 import '../core/network/api_client.dart';
+import '../core/player/audio_precache_service.dart';
 import '../features/auth/data/auth_repository_impl.dart';
 import '../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../features/auth/data/session_storage.dart';
@@ -25,6 +26,9 @@ import '../features/library/domain/repositories/library_repository.dart';
 import '../features/offline/data/offline_download_service.dart';
 import '../features/offline/data/repositories/offline_repository_impl.dart';
 import '../features/offline/domain/repositories/offline_repository.dart';
+import '../features/player/data/datasources/transition_api_service.dart';
+import '../features/player/data/repositories/transition_repository_impl.dart';
+import '../features/player/domain/repositories/transition_repository.dart';
 import '../features/tasks/data/task_database.dart';
 import '../features/tasks/data/task_repository_impl.dart';
 import '../features/tasks/domain/repositories/task_repository.dart';
@@ -182,6 +186,14 @@ OfflineRepository offlineRepository(Ref ref) => OfflineRepositoryImpl(
     );
 
 @Riverpod(keepAlive: true)
+TransitionRemoteDataSource transitionRemoteDataSource(Ref ref) =>
+    TransitionApiService(apiClient: ref.watch(apiClientProvider));
+
+@Riverpod(keepAlive: true)
+TransitionRepository transitionRepository(Ref ref) =>
+    TransitionRepositoryImpl(ref.watch(transitionRemoteDataSourceProvider));
+
+@Riverpod(keepAlive: true)
 TaskDatabase taskDatabase(Ref ref) {
   final database = TaskDatabase(name: ref.read(appConfigProvider).databaseName);
   ref.onDispose(database.close);
@@ -239,5 +251,10 @@ EventTracker eventTracker(Ref ref) {
   );
   ref.onDispose(tracker.dispose);
   return tracker;
+}
+
+@Riverpod(keepAlive: true)
+AudioPrecacheService audioPrecacheService(Ref ref) {
+  return AudioPrecacheService();
 }
 

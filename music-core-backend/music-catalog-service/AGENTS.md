@@ -50,7 +50,8 @@ music-catalog-service/
 │   │   ├── artists/                # Controller, Service, Repository (Interface & Prisma)
 │   │   ├── albums/                 # Controller, Service, Repository (Interface & Prisma)
 │   │   ├── tracks/                 # Controller, Service, Repository (Interface & Prisma)
-│   │   └── genres/                 # Controller, Service, Repository (Interface & Prisma)
+│   │   ├── genres/                 # Controller, Service, Repository (Interface & Prisma)
+│   │   └── transitions/            # Auto-DJ transition calculation & next-track recommendation (TransitionsService, TransitionsController)
 │   ├── app.module.ts
 │   └── main.ts
 └── test/

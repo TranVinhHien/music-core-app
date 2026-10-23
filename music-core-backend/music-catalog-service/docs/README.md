@@ -14,6 +14,8 @@
   - `GET /tracks`: List tracks (supports `analysisStatus=PENDING|COMPLETED|FAILED`).
   - `GET /tracks/:id`: Retrieve track details including `audioAnalysis`.
   - `PUT /tracks/:id/audio-analysis`: Upsert track transition analysis profile.
+- **Endpoints (Transitions)**:
+  - `GET /transitions/next`: Calculate optimal next track transition plan via Camelot harmonic wheel, BPM tempo matching, energy analysis, and Softmax probability sampling. Query params: `currentTrackId`, `excludeTrackIds`, `temperature`.
 - **Database**:
   - Schema file: `prisma/schema.prisma`
   - Versioned migrations & rollback scripts: `prisma/migrations/`

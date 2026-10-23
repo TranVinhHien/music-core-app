@@ -21,8 +21,12 @@ class MiniPlayerBar extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final double progress = (playerState.duration.inMilliseconds > 0)
-        ? (playerState.position.inMilliseconds / playerState.duration.inMilliseconds)
+    final effectiveDuration = (track.durationMs != null && track.durationMs! > 0)
+        ? Duration(milliseconds: track.durationMs!)
+        : playerState.duration;
+
+    final double progress = (effectiveDuration.inMilliseconds > 0)
+        ? (playerState.position.inMilliseconds / effectiveDuration.inMilliseconds)
             .clamp(0.0, 1.0)
         : 0.0;
 

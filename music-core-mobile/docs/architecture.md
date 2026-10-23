@@ -125,6 +125,32 @@ Drift's default create/upgrade behavior is sufficient while the candidate
 schema remains version 1. When a released schema changes, add a real versioned
 `MigrationStrategy` and an upgrade test; never add an empty upgrade callback.
 
+## Audio Playback & Auto-DJ Engine
+
+The audio playback subsystem is managed by `SmartCrossfadeAudioPlayer` and `PlayerController`:
+
+```text
+PlayerController (Riverpod state)
+       │
+       ├── uses ──> SmartCrossfadeAudioPlayer (just_audio wrapper)
+       │                    │
+       │                    ├── Single-player engine (compatible with just_audio_background)
+       │                    ├── Intro dead-air skip (cues to cueInMs / first downbeat)
+       │                    └── Outro dead-air elimination (fades out 7s before end & advances)
+       │
+       ├── uses ──> AudioPrecacheService
+       │                    │
+       │                    └── Background pre-download of upcoming track via Dio to temp disk
+       │
+       └── queries ──> TransitionRepository
+                            │
+                            └── GET /api/v1/catalog/transitions/next (harmonic compatibility)
+```
+
+- **Single-Player Stability**: Operates on a single `AudioPlayer` instance to fully adhere to platform constraints of `just_audio_background` (lockscreen controls, Android AutoFocus, iOS RemoteCommandCenter).
+- **Zero-Latency Pre-caching**: While track N is playing, `AudioPrecacheService` downloads track N+1 to local temporary cache (`precache_tracks/${trackId}.mp3`). When transition triggers, track N+1 plays directly from disk (`AudioSource.file`) with 0ms buffering delay.
+- **Dead-Air Suppression**: Eliminates silence gaps at both boundaries — cues into initial audio soundwaves via `cueInMs`, and initiates smooth 1.5s volume fade-out 7s before track completion to seamlessly jump into the next song.
+
 ## Generated code
 
 Riverpod providers, Freezed models, Drift accessors, and localization classes
@@ -138,3 +164,4 @@ flutter gen-l10n
 
 Regenerate the same outputs before committing and check that the working tree
 remains clean.
+

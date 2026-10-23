@@ -13,6 +13,7 @@ import '../../library/presentation/widgets/add_to_playlist_sheet.dart';
 import '../../offline/presentation/offline_controller.dart';
 import 'player_controller.dart';
 import 'player_state.dart';
+import 'smart_transition_controller.dart';
 
 class NowPlayingPage extends ConsumerWidget {
   const NowPlayingPage({super.key});
@@ -50,9 +51,15 @@ class NowPlayingPage extends ConsumerWidget {
     final downloadProgress = activeDownloads[track.id];
     final downloadedTracks = ref.watch(offlineTracksStreamProvider).asData?.value ?? [];
     final isDownloaded = track.isDownloaded || downloadedTracks.any((TrackEntity t) => t.id == track.id);
+    final isSmartTransition = ref.watch(smartTransitionControllerProvider);
 
-    final maxDurationMs = playerState.duration.inMilliseconds > 0
-        ? playerState.duration.inMilliseconds.toDouble()
+    // Authoritative duration: prioritize track.durationMs from catalog if valid
+    final effectiveDuration = (track.durationMs != null && track.durationMs! > 0)
+        ? Duration(milliseconds: track.durationMs!)
+        : playerState.duration;
+
+    final maxDurationMs = effectiveDuration.inMilliseconds > 0
+        ? effectiveDuration.inMilliseconds.toDouble()
         : 1.0;
     final currentPosMs = playerState.position.inMilliseconds
         .clamp(0, maxDurationMs.toInt())
@@ -264,7 +271,72 @@ class NowPlayingPage extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.sm),
+              // Smart Transition Mode Selector Button (Auto-DJ vs Normal)
+              InkWell(
+                onTap: () {
+                  ref.read(smartTransitionControllerProvider.notifier).toggle();
+                  final isNowSmart = !isSmartTransition;
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isNowSmart
+                            ? '✨ Đã bật Chuyển nhạc thông minh (Auto-DJ khi gần hết bài)'
+                            : '⏭️ Đã chuyển sang Chế độ phát thông thường (Hết bài đổi)',
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isSmartTransition
+                        ? AppColors.primary.withValues(alpha: 0.18)
+                        : AppColors.darkSurfaceElevated,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSmartTransition
+                          ? AppColors.primary.withValues(alpha: 0.6)
+                          : AppColors.darkTextMuted.withValues(alpha: 0.25),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isSmartTransition ? Icons.auto_awesome : Icons.queue_music_rounded,
+                        size: 15,
+                        color: isSmartTransition ? AppColors.primary : AppColors.darkTextMuted,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          isSmartTransition
+                              ? (playerState.isCrossfading
+                                  ? '🎛️ Đang hòa âm...'
+                                  : (playerState.currentTransitionPlan != null
+                                      ? '✨ Auto-DJ: Kế tiếp ${playerState.currentTransitionPlan!.nextTrack.title}'
+                                      : '✨ Auto-DJ: Đang bật'))
+                              : '⏭️ Chế độ phát: Bình thường',
+                          style: AppTypography.caption.copyWith(
+                            color: isSmartTransition ? Colors.white : AppColors.darkTextMuted,
+                            fontWeight: isSmartTransition ? FontWeight.w600 : FontWeight.w500,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
               // Progress Bar (Slider)
               Column(
                 children: [
@@ -294,11 +366,13 @@ class NowPlayingPage extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          _formatDuration(playerState.position),
+                          _formatDuration(playerState.position > effectiveDuration
+                              ? effectiveDuration
+                              : playerState.position),
                           style: AppTypography.caption.copyWith(color: AppColors.darkTextMuted),
                         ),
                         Text(
-                          _formatDuration(playerState.duration),
+                          _formatDuration(effectiveDuration),
                           style: AppTypography.caption.copyWith(color: AppColors.darkTextMuted),
                         ),
                       ],

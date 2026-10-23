@@ -102,6 +102,8 @@ To maintain clear context, the platform is divided into implemented and planned 
 3. **`music-catalog-service`**:
    - Stack: NestJS + Prisma ORM (Port `3002`).
    - Catalog management: Artists, Albums, Tracks, and Genres taxonomy.
+   - Audio analysis profiles: Camelot key, BPM, energy, LUFS loudness, cue points (`cueInMs`, `cueOutMs`).
+   - Intelligent Harmonic Transition Engine (`GET /api/v1/catalog/transitions/next`): Multi-factor scoring (Camelot wheel + BPM drift + energy delta) with temperature-calibrated Softmax sampling.
    - Dynamic search, filters, pagination, and unified response envelope.
    - Versioned migrations & down scripts.
 4. **`music-library-service`**:

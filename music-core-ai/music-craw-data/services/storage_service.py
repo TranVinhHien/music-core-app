@@ -42,16 +42,21 @@ class StorageService:
 
         file_name = os.path.basename(local_path)
         ext = os.path.splitext(file_name)[1].lower()
-        content_type, _ = mimetypes.guess_type(local_path)
-        if not content_type:
-            content_type = "audio/mpeg" if ext == ".mp3" else "application/octet-stream"
+        if ext == ".mp3":
+            content_type = "audio/mpeg"
+        elif ext in [".m4a", ".mp4"]:
+            content_type = "audio/mp4"
+        else:
+            content_type, _ = mimetypes.guess_type(local_path)
+            if not content_type:
+                content_type = "application/octet-stream"
 
-        # Đặt tên object key duy nhất tránh trùng lặp
+        # Assign unique object key to avoid collision
         unique_key = f"{folder}/{uuid.uuid4().hex[:8]}_{file_name}"
 
         if self.s3_client and self.bucket:
             try:
-                print(f"[StorageService] Đang upload file lên S3 ({self.bucket}/{unique_key})...")
+                print(f"[StorageService] Uploading file to S3 ({self.bucket}/{unique_key})...")
                 self.s3_client.upload_file(
                     Filename=local_path,
                     Bucket=self.bucket,
@@ -70,9 +75,9 @@ class StorageService:
                     "content_type": content_type
                 }
             except ClientError as e:
-                print(f"[StorageService] Lỗi khi upload lên S3: {e}. Fallback sang Local path.")
+                print(f"[StorageService] Failed to upload to S3: {e}. Falling back to local path.")
 
-        # Fallback lưu trữ cục bộ
+        # Local storage fallback
         local_url = f"file://{os.path.abspath(local_path)}"
         return {
             "success": True,

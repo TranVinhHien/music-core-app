@@ -129,22 +129,22 @@ class AutoWorkflowEngine:
 
         tracks: List[Dict[str, Any]] = []
 
-        # 1. Trường hợp Album
+        # 1. Album scenario
         if intent_type == "ALBUM" and album_name:
-            console.print(f"[dim]Tra cứu toàn bộ Album '{album_name}' của '{artist_name}'...[/dim]")
+            console.print(f"[dim]Searching full Album '{album_name}' by '{artist_name}'...[/dim]")
             tracks = MetadataService.get_album_tracks(album_name, artist_name)
             if requested_count != "ALL" and isinstance(requested_count, int) and requested_count > 0:
                 tracks = tracks[:requested_count]
 
-        # 2. Trường hợp Artist Top
+        # 2. Artist Top scenario
         elif intent_type == "ARTIST_TOP" and artist_name:
             limit = 20 if requested_count == "ALL" else int(requested_count)
-            console.print(f"[dim]Tra cứu top {limit} bài hát của nghệ sĩ '{artist_name}'...[/dim]")
+            console.print(f"[dim]Searching top {limit} tracks by '{artist_name}'...[/dim]")
             tracks = MetadataService.search_candidates(artist_name, limit=limit)
 
-        # 3. Trường hợp Tuyển tập theo Vibe, Phong cách, Danh sách nhiều bài hoặc Fallback
+        # 3. Curated playlist, Vibe, Multi-track list or Fallback
         if not tracks and candidates:
-            console.print(f"[dim]Đang làm giàu metadata chuẩn cho {len(candidates)} bài hát tuyển chọn...[/dim]")
+            console.print(f"[dim]Enriching metadata for {len(candidates)} selected tracks...[/dim]")
             for item in candidates:
                 song_title = item.get("title", "").strip()
                 song_artist = item.get("artist", "").strip()
@@ -152,7 +152,7 @@ class AutoWorkflowEngine:
                     continue
 
                 meta = None
-                # Thử tối đa 3 cách tra cứu metadata chuẩn trên iTunes/Deezer
+                # Try up to 3 lookup patterns on iTunes/Deezer
                 meta_strategies = [
                     f"{song_title} {song_artist}".strip(),
                     f"{song_title.split('(')[0].strip()} {song_artist}".strip(),
@@ -166,13 +166,13 @@ class AutoWorkflowEngine:
                 if meta:
                     tracks.append(meta)
                 else:
-                    # Nếu cả 3 cách tra cứu metadata đều không có trên iTunes,
-                    # giữ nguyên tên bài và ca sĩ để yt-dlp tải trực tiếp từ YouTube
+                    # If all 3 metadata queries yield no result,
+                    # keep song title and artist for direct download via yt-dlp
                     tracks.append({
                         "source": "curated",
                         "title": song_title,
                         "artist": song_artist or artist_name or "V-Pop",
-                        "album": "Tuyển tập",
+                        "album": "Compilation",
                         "cover_url": "",
                         "year": "",
                         "release_date": "",
@@ -181,7 +181,7 @@ class AutoWorkflowEngine:
                         "disc_number": 1
                     })
 
-        # 4. Fallback tối thượng nếu vẫn rỗng: tìm kiếm thẳng từ khóa mô tả
+        # 4. Ultimate fallback if still empty: direct search by description
         if not tracks:
             desc = intent.get("description", "")
             if desc:
@@ -212,13 +212,13 @@ class AutoWorkflowEngine:
         for attempt in range(1, MAX_ATTEMPTS + 1):
             try:
                 if attempt > 1:
-                    console.print(f"[yellow]🔄 (Lần thử {attempt}/{MAX_ATTEMPTS}) Đang đổi cách thực hiện cho: '{title}'...[/yellow]")
+                    console.print(f"[yellow]🔄 (Attempt {attempt}/{MAX_ATTEMPTS}) Switching strategy for: '{title}'...[/yellow]")
 
-                # Chiến lược tìm kiếm tương ứng từng lần
+                # Strategy per attempt
                 if attempt == 1:
                     search_query = f"{title} {artist} Official Audio"
                 elif attempt == 2:
-                    # Lược bỏ ký tự đặc biệt / ngoặc đơn
+                    # Strip special characters and parentheses
                     clean_t = title.split("(")[0].split("-")[0].strip()
                     search_query = f"{clean_t} {artist}"
                 else:
@@ -229,25 +229,32 @@ class AutoWorkflowEngine:
                 dl_res = self.downloader.search_and_download(search_query, track_meta)
                 local_file_path = dl_res["file_path"]
 
-                # 2. Upload lên Storage (S3 hoặc Local fallback)
+                # 2. Upload to Storage (S3 or local fallback)
                 upload_res = self.storage.upload_file(local_file_path, folder="tracks")
                 file_url = upload_res["url"]
 
-                # 3. Nguồn track YouTube
+                # 3. YouTube track source metadata
                 sources = [{
                     "source": "YOUTUBE",
                     "externalId": dl_res.get("source_url", "").split("v=")[-1] if "v=" in dl_res.get("source_url", "") else "stream",
                     "externalUrl": dl_res.get("source_url", "")
                 }]
 
-                # 4. Đẩy vào Catalog Microservice với phân tách đa nghệ sĩ
+                # 4. Measure accurate duration from final audio file
+                effective_duration_ms = (
+                    dl_res.get("actual_duration_ms") or 
+                    track_meta.get("duration_ms") or 
+                    (int(dl_res.get("source_duration_s", 0) * 1000) if dl_res.get("source_duration_s") else 0)
+                )
+
+                # 5. Register into Catalog Microservice with multi-artist separation
                 catalog_res = self.catalog.register_track_full(
                     raw_title=title,
                     raw_artist=artist,
                     file_url=file_url,
-                    album_title=album if attempt < 3 else None,  # Lần 3 bỏ album nếu album gây lỗi
+                    album_title=album if attempt < 3 else None,  # Omit album on attempt 3 if album causes conflict
                     cover_image_url=cover_url,
-                    duration_ms=duration_ms,
+                    duration_ms=effective_duration_ms,
                     release_date=release_date,
                     track_number=track_number,
                     disc_number=disc_number,
@@ -278,52 +285,52 @@ class AutoWorkflowEngine:
         """
         console.print(Panel(f"[bold cyan]Yêu cầu:[/bold cyan] {user_prompt}", border_style="cyan"))
 
-        # Giai đoạn 1: Phân tích yêu cầu với LLM
-        with console.status("[bold green]Bước 1: Phân tích yêu cầu & lập cấu trúc thực thi...[/bold green]"):
+        # Stage 1: Analyze user request with LLM
+        with console.status("[bold green]Step 1: Analyzing user intent & structuring workflow...[/bold green]"):
             intent = self.analyze_user_intent(user_prompt)
 
-        console.print(f"[bold yellow]🎯 Kế hoạch phân tích:[/bold yellow] {intent.get('description')}")
-        console.print(f"• Loại yêu cầu: [bold]{intent.get('intent_type')}[/bold] | Ca sĩ: [bold]{intent.get('artist_name')}[/bold] | Album: [bold]{intent.get('album_name')}[/bold] | Số lượng: [bold]{intent.get('requested_count')}[/bold]\n")
+        console.print(f"[bold yellow]🎯 Plan analysis:[/bold yellow] {intent.get('description')}")
+        console.print(f"• Request type: [bold]{intent.get('intent_type')}[/bold] | Artist: [bold]{intent.get('artist_name')}[/bold] | Album: [bold]{intent.get('album_name')}[/bold] | Quantity: [bold]{intent.get('requested_count')}[/bold]\n")
 
-        # Giai đoạn 2: Khám phá đầy đủ danh sách bài hát
-        with console.status("[bold green]Bước 2: Tìm kiếm và trích xuất danh sách bài hát chuẩn...[/bold green]"):
+        # Stage 2: Discover and extract track metadata
+        with console.status("[bold green]Step 2: Searching and extracting canonical tracklist...[/bold green]"):
             tracks = self.resolve_tracks(intent)
 
         if not tracks:
-            msg = "❌ Không tìm thấy bài hát nào phù hợp với yêu cầu."
+            msg = "❌ No matching tracks found for the request."
             console.print(f"[red]{msg}[/red]")
             return msg
 
-        # Hiển thị bảng danh sách bài hát cần xử lý
-        plan_table = Table(title=f"📋 DANH SÁCH BÀI HÁT TÌM THẤY ({len(tracks)} bài)", title_style="bold green")
+        # Display tracklist table to process
+        plan_table = Table(title=f"📋 TRACKLIST DISCOVERED ({len(tracks)} tracks)", title_style="bold green")
         plan_table.add_column("#", style="dim", width=4)
-        plan_table.add_column("Tên bài hát", style="white")
-        plan_table.add_column("Nghệ sĩ", style="cyan")
+        plan_table.add_column("Track Title", style="white")
+        plan_table.add_column("Artist", style="cyan")
         plan_table.add_column("Album", style="magenta")
-        plan_table.add_column("Thời lượng", style="yellow")
+        plan_table.add_column("Duration", style="yellow")
 
         for idx, t in enumerate(tracks, 1):
             dur_str = f"{t.get('duration_ms', 0) // 60000}:{(t.get('duration_ms', 0) % 60000) // 1000:02d}" if t.get('duration_ms') else "N/A"
             plan_table.add_row(str(idx), t.get("title", ""), t.get("artist", ""), t.get("album", ""), dur_str)
         console.print(plan_table)
 
-        # Giai đoạn 3: Thực thi Auto Workflow tự động lần lượt
-        console.print(f"\n[bold magenta]🚀 Bắt đầu Auto Workflow tải và đồng bộ {len(tracks)} bài hát vào hệ sinh thái...[/bold magenta]\n")
+        # Stage 3: Execute Auto Workflow for each track
+        console.print(f"\n[bold magenta]🚀 Starting Auto Workflow to download and synchronize {len(tracks)} tracks...[/bold magenta]\n")
 
         results = []
         for idx, track_meta in enumerate(tracks, 1):
             song_name = track_meta.get("title", "")
             art_name = track_meta.get("artist", "")
-            console.print(f"[bold cyan]▶ [{idx}/{len(tracks)}] Đang xử lý: '{song_name}' - {art_name}...[/bold cyan]")
+            console.print(f"[bold cyan]▶ [{idx}/{len(tracks)}] Processing: '{song_name}' - {art_name}...[/bold cyan]")
             try:
                 res = self.process_single_track(track_meta)
                 results.append(res)
                 artists_str = ", ".join([f"{a['name']} ({a['role']})" for a in res.get("parsed_artists", [])])
-                console.print(f"[green]✓ Hoàn thành [{idx}/{len(tracks)}]: Đã upload S3 & Catalog (Nghệ sĩ: {artists_str})[/green]\n")
+                console.print(f"[green]✓ Completed [{idx}/{len(tracks)}]: Uploaded to S3 & Catalog (Artists: {artists_str})[/green]\n")
             except Exception as e:
-                console.print(f"[red]✗ Lỗi tải bài '{song_name}': {e}[/red]\n")
+                console.print(f"[red]✗ Failed to process '{song_name}': {e}[/red]\n")
 
-        # Giai đoạn 4: Báo cáo tổng kết
+        # Stage 4: Summary report
         report_table = Table(title=f"🎉 BÁO CÁO KẾT QUẢ AUTO WORKFLOW ({len(results)}/{len(tracks)} bài thành công)", title_style="bold green")
         report_table.add_column("#", style="dim", width=4)
         report_table.add_column("Bài hát", style="white")

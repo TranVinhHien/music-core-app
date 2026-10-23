@@ -1,6 +1,7 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:meta/meta.dart';
 import '../../catalog/domain/entities/track_entity.dart';
+import '../domain/entities/transition_plan.dart';
 
 @immutable
 class PlayerState {
@@ -14,6 +15,8 @@ class PlayerState {
     this.currentIndex = 0,
     this.isShuffle = false,
     this.loopMode = LoopMode.off,
+    this.isCrossfading = false,
+    this.currentTransitionPlan,
   });
 
   final TrackEntity? currentTrack;
@@ -25,6 +28,8 @@ class PlayerState {
   final int currentIndex;
   final bool isShuffle;
   final LoopMode loopMode;
+  final bool isCrossfading;
+  final AutoDjTransitionResponse? currentTransitionPlan;
 
   bool get hasTrack => currentTrack != null;
   bool get hasNext => queue.isNotEmpty && currentIndex < queue.length - 1;
@@ -40,7 +45,10 @@ class PlayerState {
     int? currentIndex,
     bool? isShuffle,
     LoopMode? loopMode,
+    bool? isCrossfading,
+    AutoDjTransitionResponse? currentTransitionPlan,
     bool clearTrack = false,
+    bool clearTransitionPlan = false,
   }) {
     return PlayerState(
       currentTrack: clearTrack ? null : (currentTrack ?? this.currentTrack),
@@ -52,6 +60,10 @@ class PlayerState {
       currentIndex: currentIndex ?? this.currentIndex,
       isShuffle: isShuffle ?? this.isShuffle,
       loopMode: loopMode ?? this.loopMode,
+      isCrossfading: isCrossfading ?? this.isCrossfading,
+      currentTransitionPlan: clearTransitionPlan
+          ? null
+          : (currentTransitionPlan ?? this.currentTransitionPlan),
     );
   }
 }

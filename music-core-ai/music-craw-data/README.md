@@ -59,3 +59,13 @@ python main.py
 ```bash
 python main.py --album "HVL" --artist "MCK"
 ```
+
+### 4. Sửa chữa các bài hát cũ bị lỗi thời lượng (x2, x3)
+Nếu trước đây bạn đã tải các bài hát khi chưa có FFmpeg khiến thời lượng hiển thị bị nhân đôi hoặc nhân ba:
+```bash
+python fix_existing_tracks.py
+```
+Script sẽ tự động:
+1. Dùng FFmpeg chuyển đổi các file `.m4a` cũ sang `.mp3` 320kbps chuẩn hóa 100% timeline.
+2. Giữ nguyên ID3 tags và ảnh bìa Album HD.
+3. Upload lại lên S3 và cập nhật trường `durationMs` + `fileUrl` chính xác trong Catalog API.
