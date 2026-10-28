@@ -14,6 +14,7 @@ from services.downloader_service import DownloaderService
 from services.storage_service import StorageService
 from services.catalog_service import CatalogService
 from services.artist_parser import ArtistParser
+from services.audio_analyzer_service import AudioAnalyzerService
 
 console = Console()
 
@@ -24,7 +25,8 @@ class AutoWorkflowEngine:
     2. Dùng Azure OpenAI phân tích ý định (Intent Analysis) thành cấu trúc rõ ràng.
     3. Tự động thu thập 100% bài hát (không bị giới hạn 5 hay 10 bài như agent cũ).
     4. Tự động chạy tuần tự quy trình tải -> gắn tag đa nghệ sĩ -> upload S3 -> catalog API.
-    5. Báo cáo tiến độ và bảng tổng hợp chi tiết.
+    5. Tự động trích xuất thông tin âm học (BPM, Key, Camelot, Cues, Energy, LUFS) và đẩy lên API.
+    6. Báo cáo tiến độ và bảng tổng hợp chi tiết.
     """
 
     def __init__(self, config_path: str = "config.yaml"):
@@ -50,6 +52,8 @@ class AutoWorkflowEngine:
         backend_cfg = self.config.get("backend", {})
         catalog_url = backend_cfg.get("catalog_api_url", "http://localhost:3002/api/v1/catalog")
         self.catalog = CatalogService(base_url=catalog_url)
+        self.audio_analyzer = AudioAnalyzerService()
+
 
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         if os.path.exists(config_path):
@@ -261,14 +265,47 @@ class AutoWorkflowEngine:
                     sources=sources
                 )
 
+                catalog_id = catalog_res.get("catalog_id")
+
+                # 6. Extract Audio Transition Analysis (BPM, Key, Camelot, Cue points, Downbeats, Energy, LUFS)
+                # and automatically sync to Catalog API
+                audio_analysis_result = None
+                if catalog_id and os.path.exists(local_file_path):
+                    try:
+                        console.print(f"[dim]🎵 Đang trích xuất thông tin âm học (BPM, Key, Cues, Energy, LUFS)...[/dim]")
+                        analysis = self.audio_analyzer.analyze_audio(local_file_path, track_id=catalog_id)
+                        analysis_payload = analysis["payload"]
+                        audio_analysis_result = analysis["summary"]
+
+                        update_res = self.catalog.update_audio_analysis(catalog_id, analysis_payload)
+                        if update_res.get("success"):
+                            console.print(
+                                f"[green]✓ Phân tích & Sync API thành công ({analysis['elapsed_seconds']}s): "
+                                f"BPM={audio_analysis_result['bpm']} | Key={audio_analysis_result['camelot']} ({audio_analysis_result['key_scale']}) | "
+                                f"LUFS={audio_analysis_result['lufs']} | Transition={audio_analysis_result['recommended_transition']}[/green]"
+                            )
+                        else:
+                            console.print(f"[yellow]⚠️ Lỗi sync Audio Analysis lên API: {update_res.get('error')}[/yellow]")
+                    except Exception as ae:
+                        console.print(f"[yellow]⚠️ Lỗi trích xuất âm học cho '{title}': {ae}[/yellow]")
+                        try:
+                            fail_payload = self.audio_analyzer.build_failed_payload(
+                                duration_ms=effective_duration_ms,
+                                error_message=str(ae)
+                            )
+                            self.catalog.update_audio_analysis(catalog_id, fail_payload)
+                        except Exception:
+                            pass
+
                 return {
                     "title": title,
                     "artist": artist,
                     "album": album,
                     "file_url": file_url,
                     "size_mb": dl_res.get("file_size_mb"),
-                    "catalog_id": catalog_res.get("catalog_id"),
+                    "catalog_id": catalog_id,
                     "parsed_artists": catalog_res.get("parsed_artists", []),
+                    "audio_analysis": audio_analysis_result,
                     "attempts_used": attempt
                 }
 
@@ -315,7 +352,7 @@ class AutoWorkflowEngine:
         console.print(plan_table)
 
         # Stage 3: Execute Auto Workflow for each track
-        console.print(f"\n[bold magenta]🚀 Starting Auto Workflow to download and synchronize {len(tracks)} tracks...[/bold magenta]\n")
+        console.print(f"\n[bold magenta]🚀 Starting Auto Workflow to download, analyze & synchronize {len(tracks)} tracks...[/bold magenta]\n")
 
         results = []
         for idx, track_meta in enumerate(tracks, 1):
@@ -326,7 +363,9 @@ class AutoWorkflowEngine:
                 res = self.process_single_track(track_meta)
                 results.append(res)
                 artists_str = ", ".join([f"{a['name']} ({a['role']})" for a in res.get("parsed_artists", [])])
-                console.print(f"[green]✓ Completed [{idx}/{len(tracks)}]: Uploaded to S3 & Catalog (Artists: {artists_str})[/green]\n")
+                aa = res.get("audio_analysis")
+                aa_str = f" | Audio: BPM {aa['bpm']}, Key {aa['camelot']}" if aa else ""
+                console.print(f"[green]✓ Completed [{idx}/{len(tracks)}]: Uploaded to S3 & Catalog & Audio Analyzed (Artists: {artists_str}{aa_str})[/green]\n")
             except Exception as e:
                 console.print(f"[red]✗ Failed to process '{song_name}': {e}[/red]\n")
 
@@ -336,20 +375,25 @@ class AutoWorkflowEngine:
         report_table.add_column("Bài hát", style="white")
         report_table.add_column("Nghệ sĩ (Phân loại)", style="cyan")
         report_table.add_column("Album", style="magenta")
+        report_table.add_column("Phân tích Âm học (BPM / Key / LUFS)", style="yellow")
         report_table.add_column("Catalog ID", style="dim")
         report_table.add_column("S3 Storage Link", style="blue")
 
         for idx, r in enumerate(results, 1):
             art_label = ", ".join([f"{a['name']} ({a['role']})" for a in r.get("parsed_artists", [])])
+            aa = r.get("audio_analysis")
+            aa_label = f"BPM {aa['bpm']} | {aa['camelot']} ({aa['key_scale']}) | {aa['lufs']} LUFS" if aa else "N/A"
             report_table.add_row(
                 str(idx),
                 r["title"],
                 art_label,
                 r["album"] or "",
+                aa_label,
                 str(r["catalog_id"])[:8] + "...",
                 r["file_url"]
             )
         console.print(report_table)
 
-        summary_msg = f"Đã hoàn thành cào và đẩy thành công {len(results)}/{len(tracks)} bài hát vào Catalog Microservice & AWS S3."
+        summary_msg = f"Đã hoàn thành cào, trích xuất âm học (BPM, Key, Cues) và đẩy thành công {len(results)}/{len(tracks)} bài hát vào Catalog Microservice & AWS S3."
         return summary_msg
+

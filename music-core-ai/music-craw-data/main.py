@@ -16,13 +16,15 @@ console = Console()
 
 def run_workflow_interactive():
     console.print(Panel.fit(
-        "[bold cyan]🎵 MUSIC AUTO WORKFLOW & CATALOG INGESTION[/bold cyan]\n"
+        "[bold cyan]🎵 MUSIC AUTO WORKFLOW, AUDIO ANALYSIS & CATALOG INGESTION[/bold cyan]\n"
         "[white]• Tự động phân tích yêu cầu bằng Azure OpenAI (GPT-4o).[/white]\n"
         "[white]• Tự động tìm kiếm đầy đủ 100% bài hát (không giới hạn số lượng cố định).[/white]\n"
         "[white]• Nhận diện chính xác nhiều ca sĩ (PRIMARY & FEAT: &, ft, feat, x).[/white]\n"
         "[white]• Tự động tải, nhúng Cover Art, upload AWS S3 và đăng ký Catalog Microservice.[/white]\n"
+        "[white]• Tự động trích xuất thông tin âm học (BPM, Key, Camelot, Cue points, LUFS) và sync lên API.[/white]\n"
         "[dim]Nhập 'exit' hoặc 'quit' để kết thúc.[/dim]",
         border_style="cyan"
+
     ))
 
     engine = AutoWorkflowEngine("config.yaml")

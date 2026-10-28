@@ -221,3 +221,35 @@ class CatalogService:
                 "error": f"Ngoại lệ kết nối Catalog Service: {str(e)}",
                 "payload_sent": payload
             }
+
+    def update_audio_analysis(self, track_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Cập nhật kết quả phân tích âm học (BPM, key, camelot, cues, energy, lufs...) lên Catalog Service.
+        Endpoint: PUT /api/v1/catalog/tracks/{track_id}/audio-analysis
+        """
+        clean_track_id = str(track_id).strip()
+        url = f"{self.base_url}/tracks/{clean_track_id}/audio-analysis"
+        try:
+            resp = requests.put(
+                url,
+                headers=self._headers(),
+                json=payload,
+                timeout=15
+            )
+            if resp.status_code in [200, 201]:
+                data = resp.json()
+                return {
+                    "success": True,
+                    "data": data.get("data", data)
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": f"API {resp.status_code}: {resp.text}"
+                }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Ngoại lệ cập nhật Audio Analysis: {str(e)}"
+            }
+

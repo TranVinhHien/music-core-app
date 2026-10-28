@@ -15,6 +15,7 @@ from services.metadata_service import MetadataService
 from services.downloader_service import DownloaderService
 from services.storage_service import StorageService
 from services.catalog_service import CatalogService
+from services.audio_analyzer_service import AudioAnalyzerService
 
 def load_config():
     cfg_path = os.path.join(os.path.dirname(__file__), "config.yaml")
@@ -27,6 +28,8 @@ config = load_config()
 downloader = DownloaderService(download_dir=config.get("storage", {}).get("download_dir", "./downloads"))
 storage = StorageService(config)
 catalog = CatalogService(base_url=config.get("backend", {}).get("catalog_api_url", "http://localhost:3002/api/v1/catalog"))
+audio_analyzer = AudioAnalyzerService()
+
 
 TOOLS_SCHEMA = [
     {
@@ -175,7 +178,19 @@ def handle_call_tool(name: str, arguments: Dict[str, Any]) -> Any:
             disc_number=meta.get("disc_number"),
             sources=sources
         )
-        return {"metadata": meta, "storage": up, "catalog": cat}
+
+        audio_analysis = None
+        if cat.get("catalog_id") and os.path.exists(dl["file_path"]):
+            try:
+                analysis = audio_analyzer.analyze_audio(dl["file_path"], track_id=cat["catalog_id"])
+                catalog.update_audio_analysis(cat["catalog_id"], analysis["payload"])
+                audio_analysis = analysis["summary"]
+            except Exception as ae:
+                fail_payload = audio_analyzer.build_failed_payload(error_message=str(ae))
+                catalog.update_audio_analysis(cat["catalog_id"], fail_payload)
+
+        return {"metadata": meta, "storage": up, "catalog": cat, "audio_analysis": audio_analysis}
+
 
     raise ValueError(f"Unknown tool: {name}")
 

@@ -1,0 +1,6 @@
+music-api-gateway: make run-gateway
+music-catalog-service: make run-catalog
+music-library-service: make run-library
+music-listening-event-service: make run-listening-event
+music-user-service: make run-user
+# overmind start -N

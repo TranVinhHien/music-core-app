@@ -8,8 +8,13 @@ Hệ thống **Auto Workflow Engine** cào dữ liệu âm nhạc thông minh:
    - Tải audio stream qua `yt-dlp` -> convert/tag ID3 + Cover Art HD 1400x1400 bằng `mutagen`.
    - Upload file âm thanh lên AWS S3 (`travel-app-dev-123125345634`) -> lấy `file_url`.
    - Tự động tạo / gắn Album và Track vào Catalog Microservice backend (:3002).
-5. **Cơ chế Thử lại & Đổi phương án (Tối đa 3 lần)**: Nếu gặp lỗi tải, thiếu metadata hoặc lỗi mạng, hệ thống tự động đổi chiến lược tìm kiếm và retry tối đa 3 lần bằng các phương án dự phòng khác nhau trước khi bỏ cuộc.
-6. **Hiển thị tiến độ trực quan**: Bảng Kế hoạch chi tiết trước khi tải, thanh tiến độ từng bài và Bảng Báo cáo tổng kết.
+5. **Tự động trích xuất thông tin âm học & Sync lên API (Unified Music Listening)**:
+   - Tự động phân tích âm học ngay từ file local đã tải, sử dụng engine của `music-listening`.
+   - Trích xuất: BPM, Cue-in / Cue-out, Danh sách Downbeats (4/4 meter), Key / Scale, Harmonic Camelot Wheel (VD: `7A`, `3B`), Energy, Loudness LUFS (EBU R128), Recommended Transition Strategy & Crossfade.
+   - Tự động gọi API `PUT /api/v1/catalog/tracks/{id}/audio-analysis` lưu trực tiếp vào Catalog Service mà không cần chạy thêm bất kỳ bước trung gian nào.
+6. **Cơ chế Thử lại & Đổi phương án (Tối đa 3 lần)**: Nếu gặp lỗi tải, thiếu metadata hoặc lỗi mạng, hệ thống tự động đổi chiến lược tìm kiếm và retry tối đa 3 lần bằng các phương án dự phòng khác nhau trước khi bỏ cuộc.
+7. **Hiển thị tiến độ trực quan**: Bảng Kế hoạch chi tiết trước khi tải, thanh tiến độ từng bài và Bảng Báo cáo tổng kết kèm đầy đủ thông tin âm học.
+
 
 ---
 
