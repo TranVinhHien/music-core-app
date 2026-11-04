@@ -1,38 +1,54 @@
-# 🎵 Music Auto Workflow & Catalog Ingestion Engine
+# ⚡ Hermes Autonomous Music Ingestion Agent
 
-Hệ thống **Auto Workflow Engine** cào dữ liệu âm nhạc thông minh:
-1. **Phân tích yêu cầu tự nhiên (Intent Analysis)**: Dùng Azure OpenAI (GPT-4o) để bóc tách loại yêu cầu (`ALBUM`, `ARTIST_TOP`, `SONG_LIST`), tên ca sĩ, tên album và số lượng cần tải.
-2. **Khám phá trọn vẹn 100% Tracklist**: Sử dụng iTunes Lookup API & Deezer API để trích xuất toàn bộ bài hát trong album (ví dụ trọn vẹn 30 bài của album *HVL*), không bị giới hạn cố định 5-10 bài.
-3. **Bóc tách đa nghệ sĩ (PRIMARY & FEAT)**: Nhận diện chính xác các ca sĩ hợp tác (`&`, `,`, `feat.`, `ft.`, `x`, `vs`). Tự động tạo bản ghi riêng cho từng nghệ sĩ trong PostgreSQL và liên kết với vai trò `PRIMARY` hoặc `FEAT`.
-4. **Quy trình tự động hóa liên tục (Autonomous Ingestion Pipeline)**:
-   - Tải audio stream qua `yt-dlp` -> convert/tag ID3 + Cover Art HD 1400x1400 bằng `mutagen`.
-   - Upload file âm thanh lên AWS S3 (`travel-app-dev-123125345634`) -> lấy `file_url`.
-   - Tự động tạo / gắn Album và Track vào Catalog Microservice backend (:3002).
-5. **Tự động trích xuất thông tin âm học & Sync lên API (Unified Music Listening)**:
-   - Tự động phân tích âm học ngay từ file local đã tải, sử dụng engine của `music-listening`.
-   - Trích xuất: BPM, Cue-in / Cue-out, Danh sách Downbeats (4/4 meter), Key / Scale, Harmonic Camelot Wheel (VD: `7A`, `3B`), Energy, Loudness LUFS (EBU R128), Recommended Transition Strategy & Crossfade.
-   - Tự động gọi API `PUT /api/v1/catalog/tracks/{id}/audio-analysis` lưu trực tiếp vào Catalog Service mà không cần chạy thêm bất kỳ bước trung gian nào.
-6. **Cơ chế Thử lại & Đổi phương án (Tối đa 3 lần)**: Nếu gặp lỗi tải, thiếu metadata hoặc lỗi mạng, hệ thống tự động đổi chiến lược tìm kiếm và retry tối đa 3 lần bằng các phương án dự phòng khác nhau trước khi bỏ cuộc.
-7. **Hiển thị tiến độ trực quan**: Bảng Kế hoạch chi tiết trước khi tải, thanh tiến độ từng bài và Bảng Báo cáo tổng kết kèm đầy đủ thông tin âm học.
-
+Hệ thống **Hermes Music Agent** cào và nạp dữ liệu âm nhạc thông minh dựa trên kiến trúc **Hermes Agent Pattern**:
+1. **Lập Kế Hoạch & Phân Rã Mục Tiêu (Goal Decomposition & Strategic Planner)**:
+   - Khi nhận các yêu cầu dữ liệu quy mô lớn (ví dụ: *1000 bài hát Việt Nam nổi tiếng*), Agent không bao giờ dồn 1000 bài vào một prompt duy nhất (tránh lỗi cạn token LLM và hiện tượng "lười" khiến chỉ cào được ~50 bài).
+   - Thay vào đó, **Hermes Planner** tự động phân rã mục tiêu 1000 bài thành một **Execution Checklist** gồm các nhiệm vụ chuyên sâu cân đối (ví dụ: 10 Subtasks x 100 bài qua các thể loại, thời kỳ, playlist tiêu biểu).
+2. **Execution Checklist Trực Quan Trước Khi Thực Thi**:
+   - Trước khi bắt đầu cào bất kỳ bài hát nào, Agent hiển thị bảng **HERMES AGENT EXECUTION CHECKLIST** với trạng thái từng việc: `[⏳ PENDING]`, `[▶ IN PROGRESS]`, `[✓ COMPLETED]`, `[✗ FAILED]`.
+   - Lưu trữ snapshot trạng thái vào `.hermes/plans/<plan_id>.json`.
+3. **Vòng Lặp Thực Thi Bền Bỉ (Checklist-Driven Autonomous Execution Loop)**:
+   - Agent tự động duyệt tuần tự từng nhiệm vụ trong Checklist, thu thập ứng viên theo mini-batch và thực thi liên tục cho đến khi đạt đủ 100% chỉ tiêu (1000/1000 bài).
+   - **Global Deduplication Engine**: Tự động lọc trùng lặp tên bài và ca sĩ trên toàn bộ các Subtasks, đảm bảo 1000 bài hoàn toàn độc nhất.
+4. **Hỗ Trợ Khôi Phục Phiên (Persistence & Resumption)**:
+   - Nếu quá trình cào bị gián đoạn (Ctrl+C, mất mạng...), toàn bộ tiến độ đã được checkpoint trên đĩa. Người dùng có thể tiếp tục chạy từ vị trí đang dở dang với lệnh `python main.py --resume <Plan ID>`.
+5. **Bảo Toàn Trọn Vẹn 6 Bộ Công Cụ Hạ Tầng Đang Dùng**:
+   - `MetadataService`: iTunes API (Cover Art HD 1400x1400) + Deezer API.
+   - `DownloaderService`: Tải stream audio qua `yt-dlp` và transcode sang MP3 320kbps chuẩn hóa.
+   - `StorageService`: Upload file audio & ảnh bìa lên AWS S3.
+   - `ArtistParser`: Bóc tách đa nghệ sĩ (`PRIMARY` / `FEAT`) chính xác với các tiền tố `&`, `feat.`, `ft.`, `x`.
+   - `CatalogService`: Đồng bộ Artist, Album và Track vào NestJS Catalog Microservice (:3002).
+   - `AudioAnalyzerService`: Phân tích âm học nâng cao (BPM, Key, Camelot, Cue-in/out, Energy, LUFS) và sync trực tiếp lên API.
+   - **3-tier Retry Strategy**: Tự động chuyển đổi 3 chiến lược tìm kiếm trước khi báo lỗi cho từng bài.
 
 ---
 
-## 🏗️ Cấu trúc thư mục
+## 🏗️ Cấu trúc thư mục mới
 
 ```
 music-craw-data/
 ├── config.yaml               # Cấu hình Azure OpenAI, Catalog API, AWS S3
-├── requirements.txt          # Thư viện Python
-├── workflow.py               # Auto Workflow Engine (Phân tích intent & điều phối tự động)
-├── main.py                   # Điểm khởi chạy CLI (Interactive & Direct mode)
-├── mcp_server.py             # Máy chủ Model Context Protocol (MCP) qua stdio
-├── services/
-│   ├── artist_parser.py      # Bóc tách đa ca sĩ & phân loại PRIMARY / FEAT
-│   ├── metadata_service.py   # Tra cứu full tracklist của Album và metadata chuẩn
-│   ├── downloader_service.py # Tải audio & nhúng ID3 tag + cover art
-│   ├── storage_service.py    # Upload file lên AWS S3
-│   └── catalog_service.py    # Đăng ký Artist, Album, Track vào NestJS Catalog API
+├── requirements.txt          # Thư viện Python (openai, mutagen, yt-dlp, boto3, librosa, rich...)
+├── hermes/                   # Hermes Agent Core Architecture
+│   ├── __init__.py           # Export Hermes Agent components
+│   ├── models.py             # Pydantic models (HermesPlan, ChecklistTask, TaskStatus)
+│   ├── checklist_manager.py  # Quản lý checklist, render Rich table, persist JSON checkpoint
+│   ├── planner.py            # Hermes Planner: Phân rã mục tiêu lớn (1000 bài) thành Checklist
+│   ├── candidate_collector.py# Thu thập & làm giàu ứng viên theo mini-batch + deduplication
+│   ├── executor.py           # Pipeline 5 bước thực thi (Metadata -> S3 -> Catalog -> Audio Analysis)
+│   └── agent.py              # HermesMusicAgent (Điều phối toàn bộ vòng lặp thực thi)
+├── workflow.py               # Wrapper tương thích ngược cho AutoWorkflowEngine
+├── agent.py                  # Wrapper tương thích ngược cho InteractiveMusicAgent
+├── main.py                   # Điểm khởi chạy CLI (Interactive, Prompt, Resume, List Plans)
+├── mcp_server.py             # MCP Server JSON-RPC 2.0 stdio
+├── services/                 # 6 Core Services hạ tầng
+│   ├── artist_parser.py
+│   ├── metadata_service.py
+│   ├── downloader_service.py
+│   ├── storage_service.py
+│   ├── catalog_service.py
+│   └── audio_analyzer_service.py
+├── .hermes/plans/            # Thư mục lưu checkpoint các Execution Plans
 └── downloads/                # Nơi lưu file MP3 tạm thời
 ```
 
@@ -47,30 +63,33 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Chạy Auto Workflow tương tác tự nhiên
+### 2. Chạy Hermes Agent ở chế độ tương tác
 ```bash
 python main.py
 ```
 
 **Ví dụ lệnh:**
-* *"Tải cho tôi toàn bộ album HVL của ca sĩ rapper MCK. Album này có bao nhiêu tải hết cho tôi"*
-  -> Engine sẽ tự tìm ra **toàn bộ 30 bài hát** trong album HVL, hiển thị bảng kế hoạch và tự động chạy từ bài 1 đến bài 30 mà không bị dừng hay ngắt quãng.
-* *"Tải bài Giấc Mơ Trưa của Ánh Minh & Thùy Hương"*
-  -> Engine sẽ tự tách `Ánh Minh` (PRIMARY) và `Thùy Hương` (PRIMARY), tạo 2 Artist riêng và gắn vào Track.
-* *"Tải bài Huh của RPT MCK feat. RPT Orijinn & Thành Draw"*
-  -> Engine sẽ tách `RPT MCK` (PRIMARY), `RPT Orijinn` (FEAT), `Thành Draw` (FEAT).
+* *"Cào 1000 bài hát Việt Nam nổi tiếng"*
+  -> Agent phân tích mục tiêu thành 10 Subtasks (mỗi task 100 bài) đại diện cho các thời kỳ và thể loại.
+  -> In ra **Execution Checklist** với trạng thái `[⏳ PENDING]`.
+  -> Tự động chạy tuần tự từng việc trong checklist từ bài 1 đến bài 1000 mà không dừng lại ở bài 50!
+* *"Tải toàn bộ album HVL của MCK"*
+  -> Agent tạo 1 task Album, lấy trọn vẹn 30 bài từ iTunes Lookup.
+* *"plans"* hoặc *"list"*
+  -> Hiển thị các Plan ID đã lưu.
 
-### 3. Chạy trực tiếp 1 Album qua cờ CLI
+### 3. Tiếp tục chạy lại một Kế hoạch dở dang (Resume Mode)
+```bash
+python main.py --resume hermes_plan_a1b2c3d4
+```
+
+### 4. Chạy trực tiếp qua dòng lệnh
+```bash
+python main.py --prompt "50 bài ballad buồn hay nhất"
+```
 ```bash
 python main.py --album "HVL" --artist "MCK"
 ```
-
-### 4. Sửa chữa các bài hát cũ bị lỗi thời lượng (x2, x3)
-Nếu trước đây bạn đã tải các bài hát khi chưa có FFmpeg khiến thời lượng hiển thị bị nhân đôi hoặc nhân ba:
 ```bash
-python fix_existing_tracks.py
+python main.py --list-plans
 ```
-Script sẽ tự động:
-1. Dùng FFmpeg chuyển đổi các file `.m4a` cũ sang `.mp3` 320kbps chuẩn hóa 100% timeline.
-2. Giữ nguyên ID3 tags và ảnh bìa Album HD.
-3. Upload lại lên S3 và cập nhật trường `durationMs` + `fileUrl` chính xác trong Catalog API.

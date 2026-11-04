@@ -6,6 +6,9 @@ import 'package:flutter_clean_architecture_example/features/auth/domain/entities
 import 'package:flutter_clean_architecture_example/features/auth/domain/entities/user_entity.dart';
 import 'package:flutter_clean_architecture_example/features/auth/presentation/auth_controller.dart';
 import 'package:flutter_clean_architecture_example/features/auth/presentation/auth_widget_keys.dart';
+import 'package:flutter_clean_architecture_example/features/catalog/domain/entities/album_entity.dart';
+import 'package:flutter_clean_architecture_example/features/catalog/domain/entities/artist_entity.dart';
+import 'package:flutter_clean_architecture_example/features/catalog/domain/entities/catalog_search_result.dart';
 import 'package:flutter_clean_architecture_example/features/catalog/domain/entities/track_entity.dart';
 import 'package:flutter_clean_architecture_example/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:flutter_clean_architecture_example/features/library/domain/entities/playlist_entity.dart';
@@ -106,6 +109,31 @@ final class _FakeCatalogRepository implements CatalogRepository {
 
   @override
   Future<Result<TrackEntity>> getTrackById(String id) async =>
+      const ResultError(ServerFailure('Not found'));
+
+  @override
+  Future<Result<CatalogSearchResult>> searchCatalog({
+    required String query,
+    int page = 1,
+    int limit = 10,
+    String type = 'all',
+  }) async =>
+      const ResultOk(CatalogSearchResult());
+
+  @override
+  Future<Result<AlbumEntity>> getAlbumById(String id) async =>
+      const ResultError(ServerFailure('Not found'));
+
+  @override
+  Future<Result<ArtistEntity>> getArtistById(String id) async =>
+      const ResultError(ServerFailure('Not found'));
+
+  @override
+  Future<Result<TrackEntity>> getRandomTrack({
+    String? excludeTrackId,
+    List<String>? excludeTrackIds,
+    String? genreId,
+  }) async =>
       const ResultError(ServerFailure('Not found'));
 }
 

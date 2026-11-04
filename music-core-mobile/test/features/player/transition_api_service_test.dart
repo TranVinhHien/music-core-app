@@ -149,5 +149,33 @@ void main() {
       expect(plan.currentTrack.id, 'curr-direct');
       expect(plan.nextTrack.id, 'next-direct');
     });
+
+    test('supports passing CancelToken to abort in-flight requests', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'http://localhost:8000'));
+      final cancelToken = CancelToken();
+
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            cancelToken.cancel('Track changed');
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.cancel,
+                message: 'Track changed',
+              ),
+            );
+          },
+        ),
+      );
+
+      final apiService = TransitionApiService(dio: dio);
+      final result = await apiService.getNextTransition(
+        currentTrackId: 'curr-cancel',
+        cancelToken: cancelToken,
+      );
+
+      expect(result, isA<ResultError<AutoDjTransitionResponse>>());
+    });
   });
 }

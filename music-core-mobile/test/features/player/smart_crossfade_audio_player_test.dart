@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter_clean_architecture_example/core/result.dart';
 import 'package:flutter_clean_architecture_example/features/catalog/domain/entities/track_entity.dart';
 import 'package:flutter_clean_architecture_example/features/player/domain/entities/transition_plan.dart';
@@ -15,6 +16,7 @@ class FakeTransitionRepository implements TransitionRepository {
     required String currentTrackId,
     List<String>? excludeTrackIds,
     double temperature = 0.7,
+    CancelToken? cancelToken,
   }) async {
     if (nextPlanToReturn != null) {
       return ResultOk(nextPlanToReturn!);
@@ -132,6 +134,39 @@ void main() {
       final duration = await player.playTrack(track);
       expect(duration, isNull);
       expect(player.currentTrack?.id, 't-empty');
+    });
+
+    test('setSmartTransitionEnabled(false) clears plan and emits null through transitionPlanStream', () async {
+      final player = SmartCrossfadeAudioPlayer();
+
+      const plan = AutoDjTransitionResponse(
+        currentTrack: CurrentTrackTransition(
+          id: 't-1',
+          triggerTransitionAtMs: 100000,
+          stopPlaybackAtMs: 108000,
+        ),
+        nextTrack: NextTrackTransition(
+          id: 't-2',
+          title: 'Next One',
+          startPlaybackAtMs: 2000,
+        ),
+        transitionPlan: TransitionPlan(
+          transitionType: 'SMOOTH_FADE',
+          crossfadeDurationMs: 8000,
+          preBufferAtMs: 95000,
+          volumeBalanceGainDb: 0.0,
+        ),
+      );
+
+      player.setTransitionPlan(plan);
+      expect(player.currentTransitionPlan, isNotNull);
+
+      final nextEmission = player.transitionPlanStream.first;
+      player.setSmartTransitionEnabled(false);
+      final emitted = await nextEmission;
+
+      expect(emitted, isNull);
+      expect(player.currentTransitionPlan, isNull);
     });
   });
 }

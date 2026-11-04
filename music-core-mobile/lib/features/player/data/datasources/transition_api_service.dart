@@ -9,6 +9,7 @@ abstract interface class TransitionRemoteDataSource {
     required String currentTrackId,
     List<String>? excludeTrackIds,
     double temperature = 0.7,
+    CancelToken? cancelToken,
   });
 }
 
@@ -28,6 +29,7 @@ class TransitionApiService implements TransitionRemoteDataSource {
     required String currentTrackId,
     List<String>? excludeTrackIds,
     double temperature = 0.7,
+    CancelToken? cancelToken,
   }) async {
     final queryParams = <String, dynamic>{
       'currentTrackId': currentTrackId,
@@ -41,6 +43,7 @@ class TransitionApiService implements TransitionRemoteDataSource {
       final res = await _apiClient.get(
         '/api/v1/catalog/transitions/next',
         queryParameters: queryParams,
+        cancelToken: cancelToken,
       );
       return switch (res) {
         ResultOk(value: final rawData) => _parsePayload(rawData),
@@ -51,6 +54,7 @@ class TransitionApiService implements TransitionRemoteDataSource {
         final res = await _dio.get<dynamic>(
           '/api/v1/catalog/transitions/next',
           queryParameters: queryParams,
+          cancelToken: cancelToken,
         );
         return _parsePayload(res.data);
       } on DioException catch (e) {

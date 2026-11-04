@@ -51,7 +51,8 @@ music-catalog-service/
 │   │   ├── albums/                 # Controller, Service, Repository (Interface & Prisma)
 │   │   ├── tracks/                 # Controller, Service, Repository (Interface & Prisma)
 │   │   ├── genres/                 # Controller, Service, Repository (Interface & Prisma)
-│   │   └── transitions/            # Auto-DJ transition calculation & next-track recommendation (TransitionsService, TransitionsController)
+│   │   ├── transitions/            # Auto-DJ transition calculation & next-track recommendation (TransitionsService, TransitionsController)
+│   │   └── search/                 # Catalog search (Full-Text Search, pg_trgm similarity, SQL ILIKE, GIN indexes across tracks, albums, artists)
 │   ├── app.module.ts
 │   └── main.ts
 └── test/

@@ -10,6 +10,7 @@ class TrackEntity {
     this.fileUrl,
     required this.artistName,
     this.albumTitle,
+    this.albumId,
     this.coverImageUrl,
     this.localFilePath,
     this.fileSizeBytes,
@@ -24,6 +25,7 @@ class TrackEntity {
   final String? fileUrl;
   final String artistName;
   final String? albumTitle;
+  final String? albumId;
   final String? coverImageUrl;
   final String? localFilePath;
   final int? fileSizeBytes;
@@ -38,6 +40,7 @@ class TrackEntity {
     String? fileUrl,
     String? artistName,
     String? albumTitle,
+    String? albumId,
     String? coverImageUrl,
     String? localFilePath,
     int? fileSizeBytes,
@@ -52,6 +55,7 @@ class TrackEntity {
       fileUrl: fileUrl ?? this.fileUrl,
       artistName: artistName ?? this.artistName,
       albumTitle: albumTitle ?? this.albumTitle,
+      albumId: albumId ?? this.albumId,
       coverImageUrl: coverImageUrl ?? this.coverImageUrl,
       localFilePath: localFilePath ?? this.localFilePath,
       fileSizeBytes: fileSizeBytes ?? this.fileSizeBytes,
@@ -78,26 +82,39 @@ class TrackEntity {
   }
 
   factory TrackEntity.fromJson(Map<String, dynamic> json) {
-    // Determine artist name from trackArtists array or artist field
+    // Determine artist name from artists array, trackArtists array, or artist field
     String artistName = 'Nghệ sĩ chưa rõ';
-    final trackArtists = json['trackArtists'] as List?;
-    if (trackArtists != null && trackArtists.isNotEmpty) {
-      final first = trackArtists[0] as Map<String, dynamic>?;
-      final artistObj = first?['artist'] as Map<String, dynamic>?;
-      if (artistObj != null && artistObj['name'] != null) {
-        artistName = artistObj['name'] as String;
+    final artistsList = json['artists'] as List?;
+    if (artistsList != null && artistsList.isNotEmpty) {
+      final names = artistsList
+          .map((a) => (a is Map<String, dynamic> ? a['name'] as String? : null) ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (names.isNotEmpty) {
+        artistName = names.join(', ');
       }
-    } else if (json['artist'] is Map<String, dynamic>) {
-      artistName = (json['artist']['name'] as String?) ?? artistName;
-    } else if (json['artistName'] is String) {
-      artistName = json['artistName'] as String;
+    } else {
+      final trackArtists = json['trackArtists'] as List?;
+      if (trackArtists != null && trackArtists.isNotEmpty) {
+        final first = trackArtists[0] as Map<String, dynamic>?;
+        final artistObj = first?['artist'] as Map<String, dynamic>?;
+        if (artistObj != null && artistObj['name'] != null) {
+          artistName = artistObj['name'] as String;
+        }
+      } else if (json['artist'] is Map<String, dynamic>) {
+        artistName = (json['artist']['name'] as String?) ?? artistName;
+      } else if (json['artistName'] is String) {
+        artistName = json['artistName'] as String;
+      }
     }
 
-    // Determine cover image and album title
+    // Determine cover image, album title and album id
     String? coverImageUrl;
     String? albumTitle;
+    String? albumId = json['albumId'] as String? ?? json['album_id'] as String?;
     final album = json['album'] as Map<String, dynamic>?;
     if (album != null) {
+      albumId ??= album['id'] as String?;
       albumTitle = album['title'] as String?;
       coverImageUrl = album['coverImageUrl'] as String? ?? album['cover_image_url'] as String?;
     }
@@ -122,6 +139,7 @@ class TrackEntity {
       fileUrl: json['fileUrl'] as String? ?? json['file_url'] as String?,
       artistName: artistName,
       albumTitle: albumTitle,
+      albumId: albumId,
       coverImageUrl: coverImageUrl,
       cueInMs: cueInMs,
       cueOutMs: cueOutMs,
@@ -135,6 +153,7 @@ class TrackEntity {
         'file_url': fileUrl,
         'artist_name': artistName,
         'album_title': albumTitle,
+        'album_id': albumId,
         'cover_image_url': coverImageUrl,
         'cue_in_ms': cueInMs,
         'cue_out_ms': cueOutMs,

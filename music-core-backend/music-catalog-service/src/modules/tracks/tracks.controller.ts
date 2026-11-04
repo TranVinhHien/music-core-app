@@ -16,6 +16,7 @@ import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { QueryTrackDto } from './dto/query-track.dto';
+import { QueryRandomTrackDto } from './dto/query-random-track.dto';
 import { SaveTrackAudioAnalysisDto } from './dto/save-track-audio-analysis.dto';
 
 @ApiTags('Tracks')
@@ -35,6 +36,17 @@ export class TracksController {
   @ApiOperation({ summary: 'Get paginated list of tracks with filters' })
   findAll(@Query() query: QueryTrackDto) {
     return this.tracksService.findAll(query);
+  }
+
+  @Get('random')
+  @ApiOperation({
+    summary: 'Get a truly random track from catalog with optional exclusions',
+    description:
+      'Selects active tracks using PostgreSQL ORDER BY RANDOM(), optionally excluding currently playing or recently played IDs.',
+  })
+  @ApiResponse({ status: 200, description: 'Random track returned successfully.' })
+  findRandom(@Query() query: QueryRandomTrackDto) {
+    return this.tracksService.findRandom(query);
   }
 
   @Get(':id')

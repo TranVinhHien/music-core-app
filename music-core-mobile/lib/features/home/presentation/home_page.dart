@@ -47,6 +47,11 @@ class HomePage extends ConsumerWidget {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.search_rounded, size: 24),
+            tooltip: 'Tìm kiếm',
+            onPressed: () => context.go('/songs'),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout_rounded, size: 22),
             tooltip: 'Đăng xuất',
             onPressed: () async {
@@ -88,6 +93,34 @@ class HomePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Quick Search Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: InkWell(
+                  borderRadius: AppRadius.borderRadiusMd,
+                  onTap: () => context.go('/songs'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkSurface,
+                      borderRadius: AppRadius.borderRadiusMd,
+                      border: Border.all(color: AppColors.darkDivider),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.search_rounded, color: AppColors.darkTextMuted, size: 20),
+                        SizedBox(width: 10),
+                        Text(
+                          'Tìm kiếm bài hát, album, nghệ sĩ...',
+                          style: AppTypography.secondaryText,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
               // Shortcut Cards
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),

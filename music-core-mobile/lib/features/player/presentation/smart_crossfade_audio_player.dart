@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:audio_session/audio_session.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 import 'package:just_audio_background/just_audio_background.dart';
@@ -74,6 +75,7 @@ class SmartCrossfadeAudioPlayer {
   bool get isCrossfading => _isCrossfading;
 
   bool _isTransitionCompleted = false;
+  bool get isTransitionCompleted => _isTransitionCompleted;
 
   /// Whether intelligent Auto-DJ transition mode is enabled
   bool isSmartTransitionEnabled = true;
@@ -83,10 +85,24 @@ class SmartCrossfadeAudioPlayer {
     if (!enabled) {
       _abortOngoingTransition();
       _transitionPlanController.add(null);
+    } else {
+      // If turned on while a track is actively playing and no plan is set yet, fetch immediately!
+      final track = _currentTrack;
+      if (track != null && _currentTransitionPlan == null) {
+        if (transitionRepository != null) {
+          unawaited(fetchAndApplyTransition(
+            track.id,
+            excludeTrackIds: getExcludeTrackIds?.call(),
+          ));
+        } else {
+          _applyFallbackTransitionPlanIfNeeded();
+        }
+      }
     }
   }
 
   Timer? _fadeTimer;
+  CancelToken? _transitionCancelToken;
 
   // Stream controllers dispatching unified events
   final _playerStateController = StreamController<ja.PlayerState>.broadcast();
@@ -244,12 +260,19 @@ class SmartCrossfadeAudioPlayer {
       return _applyFallbackTransitionPlanIfNeeded();
     }
 
+    _transitionCancelToken?.cancel('New transition requested');
+    final cancelToken = CancelToken();
+    _transitionCancelToken = cancelToken;
+
     try {
       final result = await transitionRepository!.getNextTransition(
         currentTrackId: currentTrackId,
         excludeTrackIds: excludeTrackIds,
         temperature: temperature,
+        cancelToken: cancelToken,
       );
+
+      if (cancelToken.isCancelled) return null;
 
       return switch (result) {
         ResultOk(value: final plan) => () {
@@ -259,6 +282,7 @@ class SmartCrossfadeAudioPlayer {
             return plan;
           }(),
         ResultError(failure: final failure) => () {
+            if (cancelToken.isCancelled) return null;
             debugPrint(
               '[SmartCrossfade] Backend transition unavailable (${failure.message}). Using local queue fallback.',
             );
@@ -266,6 +290,7 @@ class SmartCrossfadeAudioPlayer {
           }(),
       };
     } catch (e) {
+      if (cancelToken.isCancelled) return null;
       debugPrint('[SmartCrossfade] Exception during transition fetch: $e. Using local fallback.');
       onError?.call(e);
       return _applyFallbackTransitionPlanIfNeeded();
@@ -339,6 +364,8 @@ class SmartCrossfadeAudioPlayer {
         timer.cancel();
         _isCrossfading = false;
         _isTransitionCompleted = true;
+        // Pause the outgoing track so it stops immediately and won't trigger duplicate completed events
+        _player.pause();
         _player.setVolume(1.0);
 
         // Advance to next song without dead silence
@@ -348,12 +375,15 @@ class SmartCrossfadeAudioPlayer {
   }
 
   void _abortOngoingTransition() {
+    _transitionCancelToken?.cancel('Transition aborted');
+    _transitionCancelToken = null;
     _fadeTimer?.cancel();
     _fadeTimer = null;
     _isCrossfading = false;
     _isTransitionCompleted = false;
     _pendingNextTrack = null;
     _currentTransitionPlan = null;
+    _transitionPlanController.add(null);
   }
 
   Future<void> pause() async {

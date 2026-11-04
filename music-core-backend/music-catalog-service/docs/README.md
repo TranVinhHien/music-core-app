@@ -16,6 +16,8 @@
   - `PUT /tracks/:id/audio-analysis`: Upsert track transition analysis profile.
 - **Endpoints (Transitions)**:
   - `GET /transitions/next`: Calculate optimal next track transition plan via Camelot harmonic wheel, BPM tempo matching, energy analysis, and Softmax probability sampling. Query params: `currentTrackId`, `excludeTrackIds`, `temperature`.
+- **Endpoints (Search)**:
+  - `GET /search`: High-performance catalog search across tracks, albums, and artists. Powered by PostgreSQL Full-Text Search (`to_tsvector`/`plainto_tsquery`), `pg_trgm` fuzzy matching (`similarity()`), SQL `ILIKE` prefix/substring matching, and GIN indexes. Dispatches 3 parallel queries, returning distinct sections with items and total counts for each entity type. Query params: `query` (or `q`), `limit`, `page`, `type` (`all`, `tracks`, `albums`, `artists`).
 - **Database**:
   - Schema file: `prisma/schema.prisma`
   - Versioned migrations & rollback scripts: `prisma/migrations/`

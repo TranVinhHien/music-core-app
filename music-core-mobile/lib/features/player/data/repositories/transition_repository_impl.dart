@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import '../../../../core/result.dart';
 import '../../domain/entities/transition_plan.dart';
 import '../../domain/repositories/transition_repository.dart';
@@ -13,11 +14,13 @@ class TransitionRepositoryImpl implements TransitionRepository {
     required String currentTrackId,
     List<String>? excludeTrackIds,
     double temperature = 0.7,
+    CancelToken? cancelToken,
   }) {
     return _remoteDataSource.getNextTransition(
       currentTrackId: currentTrackId,
       excludeTrackIds: excludeTrackIds,
       temperature: temperature,
+      cancelToken: cancelToken,
     );
   }
 }

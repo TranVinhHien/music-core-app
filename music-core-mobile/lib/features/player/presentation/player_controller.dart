@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../app/dependencies.dart';
+import '../../../core/result.dart';
 import '../../catalog/domain/entities/track_entity.dart';
 import '../../events/domain/entities/client_event.dart';
 import '../domain/entities/transition_plan.dart';
@@ -45,6 +47,13 @@ class PlayerController extends _$PlayerController {
   /// Returns the next track in current queue or loops to start for transition planning
   TrackEntity? _getNextTrackInQueue() {
     if (state.queue.isEmpty) return null;
+    if (state.isShuffle && state.queue.length > 1) {
+      final candidates =
+          state.queue.where((t) => t.id != state.currentTrack?.id).toList();
+      if (candidates.isNotEmpty) {
+        return candidates[Random().nextInt(candidates.length)];
+      }
+    }
     final nextIndex = state.currentIndex + 1;
     if (nextIndex < state.queue.length) {
       return state.queue[nextIndex];
@@ -90,6 +99,9 @@ class PlayerController extends _$PlayerController {
     // Listen to settings toggle without triggering a rebuild of the player controller
     ref.listen<bool>(smartTransitionControllerProvider, (previous, next) {
       _playerInstance?.setSmartTransitionEnabled(next);
+      if (!next) {
+        state = state.copyWith(clearTransitionPlan: true);
+      }
     });
 
     ref.onDispose(() {
@@ -213,6 +225,7 @@ class PlayerController extends _$PlayerController {
       isCrossfading: false,
       duration: newTrackDuration,
       position: Duration.zero,
+      clearTransitionPlan: true,
     );
 
     // Track playback start event for new track
@@ -254,6 +267,7 @@ class PlayerController extends _$PlayerController {
       isPlaying: true,
       isBuffering: true,
       isCrossfading: false,
+      clearTransitionPlan: true,
     );
 
     // Track playback start event
@@ -357,6 +371,12 @@ class PlayerController extends _$PlayerController {
   }
 
   Future<void> _handleTrackEnded() async {
+    // If an Auto-DJ transition has already been executed or is in progress, do not double-advance!
+    if (_player.isCrossfading || _player.isTransitionCompleted) {
+      debugPrint('[PlayerController] ProcessingState.completed ignored: Auto-DJ transition already handled');
+      return;
+    }
+
     final isSmart = ref.read(smartTransitionControllerProvider);
     final plan = state.currentTransitionPlan;
 
@@ -364,7 +384,15 @@ class PlayerController extends _$PlayerController {
     if (isSmart && plan != null) {
       final nextTrack = plan.nextTrack.toTrackEntity();
       debugPrint('[PlayerController] Natural completion: Auto-DJ advancing to ${nextTrack.title}');
-      await playTrack(nextTrack, queue: state.queue, source: _currentSource);
+
+      final currentQ = List<TrackEntity>.from(state.queue);
+      final nextIndex = state.currentIndex + 1;
+      final existingIndex = currentQ.indexWhere((t) => t.id == nextTrack.id);
+      if (existingIndex < 0) {
+        currentQ.insert(nextIndex.clamp(0, currentQ.length), nextTrack);
+      }
+
+      await playTrack(nextTrack, queue: currentQ, source: _currentSource);
       return;
     }
 
@@ -383,10 +411,115 @@ class PlayerController extends _$PlayerController {
       return;
     }
 
-    int nextIndex = state.currentIndex + 1;
-    if (state.isShuffle && state.queue.length > 1) {
-      nextIndex = (state.currentIndex + 1) % state.queue.length;
+    final isSmart = ref.read(smartTransitionControllerProvider);
+    final plan = state.currentTransitionPlan;
+
+    // If Auto-DJ mode is ON and has an upcoming planned track, jump to THAT EXACT track!
+    if (isSmart && plan != null) {
+      final nextTrack = plan.nextTrack.toTrackEntity();
+      debugPrint('[PlayerController] skipNext with Auto-DJ: jumping to planned track ${nextTrack.title}');
+
+      final currentQ = List<TrackEntity>.from(state.queue);
+      final nextIndex = state.currentIndex + 1;
+      final existingIndex = currentQ.indexWhere((t) => t.id == nextTrack.id);
+      if (existingIndex < 0) {
+        currentQ.insert(nextIndex.clamp(0, currentQ.length), nextTrack);
+      }
+
+      if (!_isNaturalCompletion && current != null) {
+        ref.read(eventTrackerProvider).trackSkipped(
+              trackId: current.id,
+              durationMs: state.duration.inMilliseconds,
+              positionMs: state.position.inMilliseconds,
+              listenedMs: state.position.inMilliseconds,
+              nextTrackId: nextTrack.id,
+              source: _currentSource,
+            );
+      }
+      _isNaturalCompletion = false;
+
+      await playTrack(nextTrack, queue: currentQ, source: _currentSource);
+      return;
     }
+
+    // If Shuffle mode is ON, fetch a truly random track from Catalog API
+    if (state.isShuffle) {
+      TrackEntity? randomTrack;
+      try {
+        final catalogRepo = ref.read(catalogRepositoryProvider);
+        final excludeIds = _getRecentlyPlayedExcludedIds();
+        final result = await catalogRepo.getRandomTrack(
+          excludeTrackId: current?.id,
+          excludeTrackIds: excludeIds,
+        );
+        if (result is ResultOk<TrackEntity>) {
+          randomTrack = result.value;
+        }
+      } catch (e) {
+        debugPrint(
+            '[PlayerController] Failed to fetch random track from catalog API: $e');
+      }
+
+      // If random track returned from API, insert into queue and play
+      if (randomTrack != null) {
+        final currentQ = List<TrackEntity>.from(state.queue);
+        final nextIndex = state.currentIndex + 1;
+        final existingIndex =
+            currentQ.indexWhere((t) => t.id == randomTrack!.id);
+        if (existingIndex < 0) {
+          currentQ.insert(nextIndex.clamp(0, currentQ.length), randomTrack);
+        }
+
+        if (!_isNaturalCompletion && current != null) {
+          ref.read(eventTrackerProvider).trackSkipped(
+                trackId: current.id,
+                durationMs: state.duration.inMilliseconds,
+                positionMs: state.position.inMilliseconds,
+                listenedMs: state.position.inMilliseconds,
+                nextTrackId: randomTrack.id,
+                source: const EventSourceModel(type: 'shuffle'),
+              );
+        }
+        _isNaturalCompletion = false;
+
+        await playTrack(
+          randomTrack,
+          queue: currentQ,
+          source: const EventSourceModel(type: 'shuffle'),
+        );
+        return;
+      }
+
+      // Offline / API failure fallback: pick a truly random track from existing queue
+      if (state.queue.length > 1) {
+        final candidates =
+            state.queue.where((t) => t.id != current?.id).toList();
+        final fallbackTrack = (candidates.isNotEmpty)
+            ? candidates[Random().nextInt(candidates.length)]
+            : state.queue.first;
+
+        if (!_isNaturalCompletion && current != null) {
+          ref.read(eventTrackerProvider).trackSkipped(
+                trackId: current.id,
+                durationMs: state.duration.inMilliseconds,
+                positionMs: state.position.inMilliseconds,
+                listenedMs: state.position.inMilliseconds,
+                nextTrackId: fallbackTrack.id,
+                source: const EventSourceModel(type: 'shuffle'),
+              );
+        }
+        _isNaturalCompletion = false;
+
+        await playTrack(
+          fallbackTrack,
+          queue: state.queue,
+          source: const EventSourceModel(type: 'shuffle'),
+        );
+        return;
+      }
+    }
+
+    int nextIndex = state.currentIndex + 1;
 
     // If reached the end of queue, wrap around to first track so playback never abruptly stops
     final TrackEntity? nextTrack = nextIndex < state.queue.length

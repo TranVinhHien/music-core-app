@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import '../../../../core/result.dart';
 import '../entities/transition_plan.dart';
 
@@ -7,5 +8,6 @@ abstract interface class TransitionRepository {
     required String currentTrackId,
     List<String>? excludeTrackIds,
     double temperature = 0.7,
+    CancelToken? cancelToken,
   });
 }
