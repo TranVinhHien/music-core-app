@@ -61,6 +61,7 @@ model Track {
   trackArtists TrackArtist[]
   trackGenres  TrackGenre[]
   trackSources TrackSource[]
+  audioAnalysis TrackAudioAnalysis?
 
   @@index([title], map: "idx_tracks_title")
   @@index([albumId], map: "idx_tracks_album_id")
@@ -135,3 +136,32 @@ model TrackSource {
   @@index([trackId], map: "idx_track_sources_track_id")
   @@map("track_sources")
 }
+
+model TrackAudioAnalysis {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trackId               String    @unique @map("track_id") @db.Uuid
+  cueInMs               Int       @default(0) @map("cue_in_ms")
+  cueOutMs              Int       @map("cue_out_ms")
+  durationMs            Int       @map("duration_ms")
+  bpm                   Float?    @db.Real
+  firstDownbeatMs       Int?      @map("first_downbeat_ms")
+  downbeats             Json?     @db.JsonB
+  key                   String?   @db.VarChar(10)
+  scale                 String?   @db.VarChar(10)
+  camelotKey            String?   @map("camelot_key") @db.VarChar(10)
+  energy                Float?    @db.Real
+  loudnessLufs          Float?    @map("loudness_lufs") @db.Real
+  recommendedTransition String?   @map("recommended_transition") @db.VarChar(50)
+  recommendedCrossfadeMs Int?     @map("recommended_crossfade_ms")
+  analysisStatus        String    @default("PENDING") @map("analysis_status") @db.VarChar(20)
+  errorMessage          String?   @map("error_message") @db.Text
+  analyzedAt            DateTime? @map("analyzed_at") @db.Timestamptz()
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  track                 Track     @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@index([analysisStatus], map: "idx_track_audio_analysis_status")
+  @@map("track_audio_analyses")
+}
+

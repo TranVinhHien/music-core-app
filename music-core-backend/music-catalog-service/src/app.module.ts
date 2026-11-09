@@ -6,6 +6,8 @@ import { ArtistsModule } from './modules/artists/artists.module';
 import { AlbumsModule } from './modules/albums/albums.module';
 import { TracksModule } from './modules/tracks/tracks.module';
 import { GenresModule } from './modules/genres/genres.module';
+import { TransitionsModule } from './modules/transitions/transitions.module';
+import { SearchModule } from './modules/search/search.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -20,6 +22,8 @@ import { AppService } from './app.service';
     AlbumsModule,
     TracksModule,
     GenresModule,
+    TransitionsModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

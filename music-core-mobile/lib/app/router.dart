@@ -7,6 +7,8 @@ import '../features/auth/presentation/auth_controller.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/register_page.dart';
 import '../features/auth/presentation/splash_page.dart';
+import '../features/catalog/presentation/album_detail_page.dart';
+import '../features/catalog/presentation/artist_detail_page.dart';
 import '../features/home/presentation/home_page.dart';
 import '../features/library/presentation/favorites_page.dart';
 import '../features/library/presentation/playlist_detail_page.dart';
@@ -59,6 +61,18 @@ GoRouter appRouter(Ref ref) {
       GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
       GoRoute(path: '/offline', builder: (context, state) => const OfflineMusicPage()),
       GoRoute(path: '/tasks', builder: (context, state) => const TasksPage()),
+      GoRoute(
+        path: '/albums/:id',
+        builder: (context, state) => AlbumDetailPage(
+          albumId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/artists/:id',
+        builder: (context, state) => ArtistDetailPage(
+          artistId: state.pathParameters['id']!,
+        ),
+      ),
 
       // Core Music App Navigation Shell with Bottom Navigation Bar
       StatefulShellRoute.indexedStack(

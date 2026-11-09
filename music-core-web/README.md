@@ -1,1 +1,2 @@
 web application
+hệ thống nghe nhạc của tôi nên có bao nhiêu phần gợi ý theo tôi nghĩ đầu tiên là : nghe danh sách các bài nhạc người dùng nghe gần đây, tiếp theo là các bài hát người dùng yêu thích. tiếp đến là các bài hát chung 1 loại(ví dụ nhạc sôi động , nhạc buồn,nhạc chill chill) và cuối cùng là nhạc nhảy ngẫu nhiên nhưng bài trước và sau có chung nhip điệu liền mạch với nhau. hướng vậy đúng không

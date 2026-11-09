@@ -22,4 +22,11 @@ export class QueryTrackDto extends PaginationQueryDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by audio analysis status (e.g. PENDING, COMPLETED, FAILED)',
+  })
+  @IsOptional()
+  @IsString()
+  analysisStatus?: string;
 }

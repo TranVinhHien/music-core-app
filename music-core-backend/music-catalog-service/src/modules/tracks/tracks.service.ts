@@ -6,6 +6,8 @@ import {
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { QueryTrackDto } from './dto/query-track.dto';
+import { QueryRandomTrackDto } from './dto/query-random-track.dto';
+import { SaveTrackAudioAnalysisDto } from './dto/save-track-audio-analysis.dto';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { slugify } from '../../common/utils/text.util';
 
@@ -35,6 +37,17 @@ export class TracksService {
   async findAll(query: QueryTrackDto) {
     const { items, total } = await this.trackRepository.findAll(query);
     return new PaginatedResult(items, total, query.page, query.limit);
+  }
+
+  async findRandom(query: QueryRandomTrackDto) {
+    const tracks = await this.trackRepository.findRandom(query);
+    if (!tracks || tracks.length === 0) {
+      throw new NotFoundException('No tracks found in catalog');
+    }
+    if (query.limit === 1) {
+      return tracks[0];
+    }
+    return tracks;
   }
 
   async findOne(id: string) {
@@ -76,5 +89,10 @@ export class TracksService {
   async remove(id: string) {
     await this.findOne(id);
     return this.trackRepository.delete(id);
+  }
+
+  async saveAudioAnalysis(id: string, dto: SaveTrackAudioAnalysisDto) {
+    await this.findOne(id);
+    return this.trackRepository.upsertAudioAnalysis(id, dto);
   }
 }

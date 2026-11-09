@@ -160,8 +160,25 @@ class ApiClient {
   }
 
   static void _logRaw(String text) {
-    // In Flutter, print() is intercepted by UIDartState::Log and guaranteed to stream to `flutter run` console.
-    print(text);
+    // Flutter and platform loggers (iOS os_log / Android logcat) enforce a ~1024-byte limit per log call.
+    // If a single log call exceeds that limit, the platform truncates it with '<…>' or '...'.
+    // To ensure full cURL commands, tokens, and response bodies are logged completely without truncation,
+    // we split by newlines and chunk any line exceeding 800 characters into safe sub-chunks.
+    const maxChunkLength = 800;
+    for (final line in text.split('\n')) {
+      if (line.length <= maxChunkLength) {
+        print(line);
+      } else {
+        var start = 0;
+        while (start < line.length) {
+          final end = (start + maxChunkLength < line.length)
+              ? start + maxChunkLength
+              : line.length;
+          print(line.substring(start, end));
+          start = end;
+        }
+      }
+    }
   }
 
   static void _logRequest(RequestOptions options) {
@@ -180,7 +197,7 @@ class ApiClient {
   static void _logResponse(Response<dynamic> response, String formattedBody) {
     _logRaw(
       '\n>>> [HTTP RESPONSE: ${response.statusCode} ${response.statusMessage ?? 'OK'}] ${response.requestOptions.method} ${response.requestOptions.uri}\n'
-      '${formattedBody.isNotEmpty ? '$formattedBody\n' : ''}'
+      // '${formattedBody.isNotEmpty ? '$formattedBody\n' : ''}'
       '<<< [END RESPONSE]\n',
     );
   }
@@ -261,12 +278,14 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? queryParameters,
     Options? options,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get<dynamic>(
         path,
         queryParameters: queryParameters,
         options: options,
+        cancelToken: cancelToken,
       );
       return _handleResponse(response);
     } on DioException catch (e) {

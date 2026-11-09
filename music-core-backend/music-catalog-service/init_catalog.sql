@@ -1,4 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- 1. Artists: Stores information about music artists.
 CREATE TABLE artists (
@@ -110,3 +111,15 @@ CREATE TABLE track_sources (
 
 CREATE INDEX idx_track_sources_track_id
     ON track_sources (track_id);
+
+
+-- 9. Search Optimization Indexes (Full-Text Search & Trigram Fuzzy Search)
+CREATE INDEX idx_tracks_title_trgm ON tracks USING gin (title gin_trgm_ops);
+CREATE INDEX idx_tracks_title_fts ON tracks USING gin (to_tsvector('simple', title));
+
+CREATE INDEX idx_albums_title_trgm ON albums USING gin (title gin_trgm_ops);
+CREATE INDEX idx_albums_title_fts ON albums USING gin (to_tsvector('simple', title));
+
+CREATE INDEX idx_artists_name_trgm ON artists USING gin (name gin_trgm_ops);
+CREATE INDEX idx_artists_normalized_name_trgm ON artists USING gin (normalized_name gin_trgm_ops);
+CREATE INDEX idx_artists_name_fts ON artists USING gin (to_tsvector('simple', name));

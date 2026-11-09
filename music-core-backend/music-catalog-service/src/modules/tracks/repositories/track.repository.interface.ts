@@ -1,5 +1,7 @@
-import { Prisma, Track } from '@prisma/client';
+import { Prisma, Track, TrackAudioAnalysis } from '@prisma/client';
 import { QueryTrackDto } from '../dto/query-track.dto';
+import { QueryRandomTrackDto } from '../dto/query-random-track.dto';
+import { SaveTrackAudioAnalysisDto } from '../dto/save-track-audio-analysis.dto';
 
 export interface FindTracksResult {
   items: Track[];
@@ -18,6 +20,7 @@ export interface ITrackRepository {
   findById(id: string): Promise<Track | null>;
   findWithDetails(id: string): Promise<any | null>;
   findAll(query: QueryTrackDto): Promise<FindTracksResult>;
+  findRandom(dto: QueryRandomTrackDto): Promise<any[]>;
   updateWithRelations(
     id: string,
     data: Prisma.TrackUpdateInput,
@@ -26,4 +29,8 @@ export interface ITrackRepository {
     sources?: { source: string; externalId: string; externalUrl?: string }[],
   ): Promise<Track>;
   delete(id: string): Promise<Track>;
+  upsertAudioAnalysis(
+    trackId: string,
+    data: SaveTrackAudioAnalysisDto,
+  ): Promise<TrackAudioAnalysis>;
 }

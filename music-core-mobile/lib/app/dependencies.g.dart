@@ -134,7 +134,7 @@ final class ApiClientProvider
   }
 }
 
-String _$apiClientHash() => r'ce154bf2178859b163ffec0423eb706caeeae3b3';
+String _$apiClientHash() => r'7f49188168a8f6e9a0930b527bce052fbc788190';
 
 @ProviderFor(authRemoteDataSource)
 final authRemoteDataSourceProvider = AuthRemoteDataSourceProvider._();
@@ -551,6 +551,103 @@ final class OfflineRepositoryProvider
 
 String _$offlineRepositoryHash() => r'e5b0ee198bc8d451661f751a7175c980b407f94e';
 
+@ProviderFor(transitionRemoteDataSource)
+final transitionRemoteDataSourceProvider =
+    TransitionRemoteDataSourceProvider._();
+
+final class TransitionRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          TransitionRemoteDataSource,
+          TransitionRemoteDataSource,
+          TransitionRemoteDataSource
+        >
+    with $Provider<TransitionRemoteDataSource> {
+  TransitionRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transitionRemoteDataSourceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transitionRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransitionRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransitionRemoteDataSource create(Ref ref) {
+    return transitionRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransitionRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransitionRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$transitionRemoteDataSourceHash() =>
+    r'ee69d9e41fa7d249751bf14e9892a7f5b08e31ee';
+
+@ProviderFor(transitionRepository)
+final transitionRepositoryProvider = TransitionRepositoryProvider._();
+
+final class TransitionRepositoryProvider
+    extends
+        $FunctionalProvider<
+          TransitionRepository,
+          TransitionRepository,
+          TransitionRepository
+        >
+    with $Provider<TransitionRepository> {
+  TransitionRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transitionRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transitionRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransitionRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransitionRepository create(Ref ref) {
+    return transitionRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransitionRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransitionRepository>(value),
+    );
+  }
+}
+
+String _$transitionRepositoryHash() =>
+    r'69661a76cc93c2a064272db00871e86f27309c18';
+
 @ProviderFor(taskDatabase)
 final taskDatabaseProvider = TaskDatabaseProvider._();
 
@@ -769,3 +866,50 @@ final class EventTrackerProvider
 }
 
 String _$eventTrackerHash() => r'094de3977ed409f9e79cdc0837078e8f881945ed';
+
+@ProviderFor(audioPrecacheService)
+final audioPrecacheServiceProvider = AudioPrecacheServiceProvider._();
+
+final class AudioPrecacheServiceProvider
+    extends
+        $FunctionalProvider<
+          AudioPrecacheService,
+          AudioPrecacheService,
+          AudioPrecacheService
+        >
+    with $Provider<AudioPrecacheService> {
+  AudioPrecacheServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'audioPrecacheServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$audioPrecacheServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<AudioPrecacheService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AudioPrecacheService create(Ref ref) {
+    return audioPrecacheService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AudioPrecacheService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AudioPrecacheService>(value),
+    );
+  }
+}
+
+String _$audioPrecacheServiceHash() => r'894de3977ed409f9e79cdc0837078e8f881945ed';
+
