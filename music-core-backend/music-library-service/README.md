@@ -1,2 +1,6 @@
-NestJS + PostgreSQL
-Quản lý playlist, yêu thích, thư viện và đồng bộ thiết bị; cần transaction và quan hệ dữ liệu.
+# Music Library Service
+
+- **Runtime / Framework:** NestJS + PostgreSQL
+- **Primary Responsibilities:**
+  - Manages user playlists, favorites, personal libraries, and multi-device library sync.
+  - Relational integrity and transaction support for user library operations.

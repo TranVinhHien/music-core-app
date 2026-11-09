@@ -1,44 +1,44 @@
-# Kiến Trúc Nội Bộ - Music API Gateway
+# Internal Architecture - Music API Gateway
 
-> **Lưu ý cập nhật**: Cập nhật file này khi thay đổi cơ chế định tuyến (proxy), middleware pipeline hoặc cấu trúc config của API Gateway.
+> **Update Notice**: Update this file when changing routing mechanisms (proxy), middleware pipelines, or API Gateway configuration structures.
 
 ---
 
-## 1. Cấu trúc thư mục (Directory Structure)
+## 1. Directory Structure
 ```
 music-api-gateway/
-├── cmd/                # Khởi chạy gateway
-├── config/             # Parse gateway.*.yaml
+├── cmd/                # Gateway bootstrap and entry point
+├── config/             # Parse and load gateway.*.yaml
 ├── middlewares/        # Auth, CORS, Logger, Rate-limit, Recovery
-├── permissions/        # Logic phân quyền (RBAC) và match route permissions
-├── permissions.json    # Bảng phân quyền chi tiết cho từng endpoint
+├── permissions/        # RBAC logic and route permission matching
+├── permissions.json    # Detailed permission matrix per endpoint
 ├── proxy.go            # Reverse Proxy handler
-├── server.go           # Khởi tạo HTTP router và middleware chain
-└── gateway.example.yaml# File mẫu cấu hình downstream routes và server port
+├── server.go           # HTTP router and middleware chain initialization
+└── gateway.example.yaml# Sample configuration for downstream routes and server port
 ```
 
 ---
 
-## 2. Luồng xử lý một Request (Request Flow)
-1. **Client Request** ➔ `server.go` tiếp nhận qua HTTP port.
+## 2. Request Flow
+1. **Client Request** ➔ Received by `server.go` via HTTP port.
 2. **Global Middlewares**:
-   - `RequestIDMiddleware`: Tạo và đính kèm `X-Request-Id`.
-   - `CORSMiddleware`: Kiểm tra header CORS.
-   - `LoggerMiddleware`: Ghi log request/latency.
+   - `RequestIDMiddleware`: Generates and attaches `X-Request-Id`.
+   - `CORSMiddleware`: Handles CORS headers and preflight checks.
+   - `LoggerMiddleware`: Logs request details and latency.
 3. **Authentication & Authorization**:
-   - `AuthMiddleware`: Validate JWT Bearer Token, trích xuất `user_id` và `role`.
-   - `PermissionMiddleware`: Đối chiếu path và method với `permissions.json`.
+   - `AuthMiddleware`: Validates JWT Bearer Token, extracts `user_id` and `user_roles`.
+   - `PermissionMiddleware`: Evaluates request path and HTTP method against `permissions.json`.
 4. **Proxy Forwarding (`proxy.go`)**:
-   - Gắn header `X-User-Id`, `X-User-Role`, `X-Request-Id`.
-   - Forward sang Downstream Service (User, Catalog, Library, Audio, v.v.).
+   - Injects downstream headers: `X-User-ID`, `X-User-Roles`, `X-Request-ID`.
+   - Forwards request to downstream services (User, Catalog, Library, Audio, etc.).
 5. **Response Handler**:
-   - Trả dữ liệu từ downstream về cho Client.
+   - Relays response from downstream service back to client.
 
 ---
 
-## 3. Cấu hình Routes & Downstream Services (Tóm tắt)
-- Cấu hình được định nghĩa trong file `gateway.*.yaml`.
-- Quy tắc mapping:
+## 3. Routes & Downstream Services Configuration (Summary)
+- Configured in `gateway.*.yaml`.
+- Mapping rules:
   - `/api/v1/users/**` ➔ `music-user-service`
   - `/api/v1/auth/**` ➔ `music-user-service`
   - `/api/v1/catalog/**` ➔ `music-catalog-service`

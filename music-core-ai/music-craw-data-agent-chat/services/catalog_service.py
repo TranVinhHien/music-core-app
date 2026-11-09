@@ -3,8 +3,8 @@ from typing import Dict, Any, Optional, List
 
 class CatalogService:
     """
-    Client giao tiếp với Backend music-catalog-service (NestJS) qua REST API.
-    Đảm bảo tự động tìm kiếm hoặc tạo Artist, Album trước khi gắn vào Track.
+    Client communicating with the NestJS music-catalog-service over REST API.
+    Ensures Artists and Albums are looked up or created prior to track registration.
     """
 
     def __init__(self, base_url: str = "http://localhost:3002/api/v1/catalog"):
@@ -18,12 +18,12 @@ class CatalogService:
 
     def find_or_create_artist(self, artist_name: str, image_url: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
-        Tìm Artist theo tên; nếu chưa có thì tự động tạo mới.
+        Finds an artist by name; automatically creates a new record if not found.
         """
         if not artist_name:
             return None
 
-        # 1. Tìm trong danh sách hiện tại
+        # 1. Search in existing artists
         try:
             get_resp = requests.get(
                 f"{self.base_url}/artists",
@@ -36,12 +36,12 @@ class CatalogService:
                 items = result.get("data", {}).get("items", []) if isinstance(result.get("data"), dict) else result.get("data", [])
                 for item in items:
                     if item.get("name", "").strip().lower() == artist_name.strip().lower():
-                        print(f"[CatalogService] Đã tìm thấy Artist tồn tại: {item.get('name')} (ID: {item.get('id')})")
+                        print(f"[CatalogService] Found existing Artist: {item.get('name')} (ID: {item.get('id')})")
                         return item
         except Exception as e:
-            print(f"[CatalogService] Không thể kết nối danh sách Artist: {e}")
+            print(f"[CatalogService] Failed to connect to Artists list: {e}")
 
-        # 2. Tạo mới Artist nếu chưa có
+        # 2. Create new artist if not found
         try:
             payload = {
                 "name": artist_name,
@@ -57,23 +57,23 @@ class CatalogService:
             if post_resp.status_code in [200, 201]:
                 res_data = post_resp.json()
                 artist = res_data.get("data", res_data)
-                print(f"[CatalogService] Đã tạo mới Artist: {artist_name} (ID: {artist.get('id')})")
+                print(f"[CatalogService] Created new Artist: {artist_name} (ID: {artist.get('id')})")
                 return artist
             else:
-                print(f"[CatalogService] Lỗi tạo Artist: {post_resp.status_code} - {post_resp.text}")
+                print(f"[CatalogService] Failed to create Artist: {post_resp.status_code} - {post_resp.text}")
         except Exception as e:
-            print(f"[CatalogService] Ngoại lệ tạo Artist: {e}")
+            print(f"[CatalogService] Exception creating Artist: {e}")
 
         return None
 
     def find_or_create_album(self, album_title: str, artist_id: Optional[str] = None, release_date: Optional[str] = None, cover_image_url: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
-        Tìm Album theo tên; nếu chưa có thì tự động tạo mới.
+        Finds an album by title; automatically creates a new record if not found.
         """
         if not album_title:
             return None
 
-        # 1. Tìm album
+        # 1. Search in existing albums
         try:
             get_resp = requests.get(
                 f"{self.base_url}/albums",
@@ -86,12 +86,12 @@ class CatalogService:
                 items = result.get("data", {}).get("items", []) if isinstance(result.get("data"), dict) else result.get("data", [])
                 for item in items:
                     if item.get("title", "").strip().lower() == album_title.strip().lower():
-                        print(f"[CatalogService] Đã tìm thấy Album tồn tại: {item.get('title')} (ID: {item.get('id')})")
+                        print(f"[CatalogService] Found existing Album: {item.get('title')} (ID: {item.get('id')})")
                         return item
         except Exception as e:
-            print(f"[CatalogService] Không thể kết nối danh sách Album: {e}")
+            print(f"[CatalogService] Failed to connect to Albums list: {e}")
 
-        # 2. Tạo mới Album
+        # 2. Create new album if not found
         try:
             payload: Dict[str, Any] = {
                 "title": album_title,
@@ -111,12 +111,12 @@ class CatalogService:
             if post_resp.status_code in [200, 201]:
                 res_data = post_resp.json()
                 album = res_data.get("data", res_data)
-                print(f"[CatalogService] Đã tạo mới Album: {album_title} (ID: {album.get('id')})")
+                print(f"[CatalogService] Created new Album: {album_title} (ID: {album.get('id')})")
                 return album
             else:
-                print(f"[CatalogService] Lỗi tạo Album: {post_resp.status_code} - {post_resp.text}")
+                print(f"[CatalogService] Failed to create Album: {post_resp.status_code} - {post_resp.text}")
         except Exception as e:
-            print(f"[CatalogService] Ngoại lệ tạo Album: {e}")
+            print(f"[CatalogService] Exception creating Album: {e}")
 
         return None
 
@@ -130,7 +130,7 @@ class CatalogService:
                      album_id: Optional[str] = None,
                      sources: Optional[List[Dict[str, str]]] = None) -> Dict[str, Any]:
         """
-        Đăng ký bản ghi Track vào Catalog Microservice.
+        Registers a Track record in the Catalog Microservice.
         """
         payload: Dict[str, Any] = {
             "title": title,
@@ -155,7 +155,7 @@ class CatalogService:
             payload["sources"] = sources
 
         try:
-            print(f"[CatalogService] Đang đẩy thông tin Track '{title}' lên Catalog API...")
+            print(f"[CatalogService] Syncing Track '{title}' to Catalog API...")
             resp = requests.post(
                 f"{self.base_url}/tracks",
                 headers=self._headers(),
@@ -164,7 +164,7 @@ class CatalogService:
             )
             if resp.status_code in [200, 201]:
                 data = resp.json()
-                print(f"[CatalogService] Thành công tạo Track trên hệ thống!")
+                print(f"[CatalogService] Successfully created Track in catalog!")
                 return {
                     "success": True,
                     "catalog_id": data.get("data", {}).get("id") or data.get("id"),
@@ -179,6 +179,6 @@ class CatalogService:
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Ngoại lệ kết nối Catalog Service: {str(e)}",
+                "error": f"Exception connecting to Catalog Service: {str(e)}",
                 "payload_sent": payload
             }

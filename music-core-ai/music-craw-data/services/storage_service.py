@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 
 class StorageService:
     """
-    Dịch vụ lưu trữ file: Upload audio và ảnh bìa lên AWS S3 (hoặc fallback cục bộ).
+    Storage service: Uploads audio and cover art to AWS S3 (with local fallback).
     """
 
     def __init__(self, config: Dict[str, Any]):
@@ -31,14 +31,14 @@ class StorageService:
                     aws_secret_access_key=self.secret_key
                 )
             except Exception as e:
-                print(f"[StorageService] Không thể khởi tạo S3 Client: {e}")
+                print(f"[StorageService] Failed to initialize S3 Client: {e}")
 
     def upload_file(self, local_path: str, folder: str = "tracks") -> Dict[str, Any]:
         """
-        Upload một file (audio hoặc ảnh) lên Storage và trả về URL truy cập.
+        Uploads a file (audio or image) to storage and returns public access URL.
         """
         if not os.path.exists(local_path):
-            raise FileNotFoundError(f"File không tồn tại: {local_path}")
+            raise FileNotFoundError(f"File not found: {local_path}")
 
         file_name = os.path.basename(local_path)
         ext = os.path.splitext(file_name)[1].lower()

@@ -1,7 +1,7 @@
 {
   "name": "music-catalog-service",
   "version": "0.0.1",
-  "description": "",
+  "description": "Music catalog microservice managing tracks, artists, albums, genres, and audio transition profiles.",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

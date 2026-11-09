@@ -17,17 +17,17 @@ console = Console()
 class AutoWorkflowEngine:
     """
     Auto Workflow Engine (Refactored to Hermes Agent Architecture):
-    - Tự động lập Checklist danh sách việc làm trước khi thực thi.
-    - Chia nhỏ các yêu cầu lớn (ví dụ 1000 bài) thành các Subtask cân đối, không bị giới hạn token.
-    - Chạy tuần tự và tự động cho đến khi hoàn thành toàn bộ chỉ tiêu.
-    - Giữ trọn vẹn bộ 6 công cụ hạ tầng và khả năng trích xuất âm học.
+    - Automatically builds an Execution Checklist before running.
+    - Decomposes high-volume requirements (e.g. 1,000 tracks) into balanced subtasks without hitting token limits.
+    - Runs sequentially and autonomously until 100% target quota is achieved.
+    - Preserves all 6 infrastructure tools and acoustic analysis capabilities.
     """
 
     def __init__(self, config_path: str = "config.yaml"):
         self.config_path = config_path
         self.hermes = HermesMusicAgent(config_path=config_path)
 
-        # Giữ lại các thuộc tính cũ để tương thích với bất kỳ mã ngoài nào truy cập
+        # Retain legacy attributes for backward compatibility
         self.config = self.hermes.config
         self.downloader = self.hermes.executor.downloader
         self.storage = self.hermes.executor.storage
@@ -35,7 +35,7 @@ class AutoWorkflowEngine:
         self.audio_analyzer = self.hermes.executor.audio_analyzer
 
     def analyze_user_intent(self, user_prompt: str) -> Dict[str, Any]:
-        """Tương thích ngược: Phân tích mục tiêu bằng Hermes Planner"""
+        """Backward compatibility: Goal decomposition via Hermes Planner"""
         plan = self.hermes.planner.create_plan(user_prompt)
         return {
             "intent_type": "HERMES_PLAN",
@@ -45,7 +45,7 @@ class AutoWorkflowEngine:
         }
 
     def process_single_track(self, track_meta: Dict[str, Any]) -> Dict[str, Any]:
-        """Tương thích ngược: Xử lý 1 bài hát thông qua Hermes Executor"""
+        """Backward compatibility: Process single track via Hermes Executor"""
         res = self.hermes.executor.process_track(track_meta)
         return {
             "title": res.title,
@@ -62,12 +62,12 @@ class AutoWorkflowEngine:
 
     def execute_workflow(self, user_prompt: str, resume_plan_id: Optional[str] = None) -> str:
         """
-        Khởi chạy toàn bộ luồng Hermes Agent:
+        Executes full Hermes Agent workflow:
         Checklist Generation -> Autonomous Execution Loop -> Summary Report
         """
         plan = self.hermes.run(user_prompt, resume_plan_id=resume_plan_id)
         return (
-            f"Hermes Agent đã hoàn thành kế hoạch '{plan.goal}'. "
-            f"Đã xử lý và đẩy thành công {plan.total_crawled_count}/{plan.total_target_count} bài hát "
-            f"vào Catalog Microservice & AWS S3."
+            f"Hermes Agent completed plan '{plan.goal}'. "
+            f"Successfully processed and synced {plan.total_crawled_count}/{plan.total_target_count} tracks "
+            f"into Catalog Microservice & AWS S3."
         )

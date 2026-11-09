@@ -1,22 +1,22 @@
 # Music Listening Event Service
 
-Microservice phụ trách tiếp nhận (ingestion), xác thực, khử trùng lặp (deduplication/idempotency) và lưu trữ thô các sự kiện nghe nhạc và tương tác của người dùng.
+Microservice responsible for the ingestion, validation, deduplication/idempotency, and raw storage of user listening events and interaction behaviors.
 
-## Công nghệ & Kiến trúc
-- **Ngôn ngữ**: Golang (Go 1.26)
+## Tech Stack & Architecture
+- **Language**: Golang (Go 1.26)
 - **Framework**: Gin Gonic
-- **Cơ sở dữ liệu**: MongoDB
-- **Cổng dịch vụ**: Port `3004` (được định tuyến qua `music-api-gateway` tại `/api/v1/listening-events`)
-- **Kiến trúc**: Layered Architecture (Handler -> Service -> Repository -> MongoDB)
+- **Database**: MongoDB
+- **Service Port**: Port `3004` (routed via `music-api-gateway` at `/api/v1/listening-events`)
+- **Architecture**: Layered Architecture (Handler -> Service -> Repository -> MongoDB)
 
 ## API Endpoints
 
 ### 1. Ingest Batch Events
 - **Method**: `POST`
-- **Path**: `/api/v1/listening-events/batch` (hoặc `/api/v1/listening-events`)
+- **Path**: `/api/v1/listening-events/batch` (or `/api/v1/listening-events`)
 - **Headers**:
   - `Authorization: Bearer <token>`
-  - `X-User-ID: <uuid>` (nếu gọi qua Gateway)
+  - `X-User-ID: <uuid>` (injected when routed via Gateway)
 - **Request Body**:
   ```json
   {
@@ -57,16 +57,16 @@ Microservice phụ trách tiếp nhận (ingestion), xác thực, khử trùng l
   ```
 
 ### 2. Health Check
-- **Path**: `/health` hoặc `/api/v1/listening-events/health`
+- **Path**: `/health` or `/api/v1/listening-events/health`
 
-## Chạy & Kiểm thử
+## Run & Test
 ```bash
-# Chạy service
+# Run service
 make run-listening-event
 
 # Build binary
 make build-listening-event
 
-# Chạy unit tests
+# Run unit tests
 make test-listening-event
 ```

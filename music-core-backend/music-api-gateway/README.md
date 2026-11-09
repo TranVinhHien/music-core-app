@@ -1,46 +1,46 @@
 # Music API Gateway
 
-Service API Gateway đóng vai trò là single entry point cho các client (Flutter mobile app, Web frontend, v.v.) kết nối đến hệ thống backend microservices của Personal Music App.
+The API Gateway service acts as the single entry point for clients (Flutter mobile app, Web frontend, etc.) connecting to the backend microservices ecosystem of the Personal Music App.
 
-## 1. Trách nhiệm chính
+## 1. Primary Responsibilities
 
-- **Reverse Proxy & Routing:** Tiếp nhận request từ client và định tuyến đến các microservices tương ứng (`music-user-service`, `music-catalog-service`, `music-library-service`, `music-listening-event-service`, `music-audio-service`).
-- **Xác thực Token tập trung & Stateless:**
-  - Token JWT chứa `user_id`, `email`, và mảng `user_roles` (ví dụ: `["user"]` hoặc `["admin"]`).
-  - API Gateway giải mã và kiểm tra tính hợp lệ của token mà **không cần gọi DB hay gọi sang user-service** trên từng request.
-- **Phân quyền trên từng API (Role-Based Access Control):**
-  - Gateway lấy mảng `user_roles` từ JWT token và đối chiếu với file ma trận quyền [config/permissions.json](config/permissions.json).
-  - Hỗ trợ các pattern: wildcard `*`, prefix `/*`, và path param `:param`.
-  - Trả về `401 Unauthorized` nếu token thiếu/không hợp lệ, hoặc `403 Forbidden` nếu role không có quyền truy cập API.
-- **Context Header Injection:** Tự động inject và forward các header xuống service phía sau:
-  - `X-User-ID`: UUID định danh người dùng.
-  - `X-User-Email`: Email của người dùng.
-  - `X-User-Roles`: Danh sách role phân tách bằng dấu phẩy (vd: `user,admin`).
-  - `X-Request-ID`: Mã định danh request duy nhất.
-- **Structured Logging & CORS:** Ghi log chi tiết và xử lý CORS tập trung.
+- **Reverse Proxy & Routing:** Receives incoming client requests and routes them to the appropriate downstream microservices (`music-user-service`, `music-catalog-service`, `music-library-service`, `music-listening-event-service`, `music-audio-service`).
+- **Centralized & Stateless Token Authentication:**
+  - JWT tokens encode `user_id`, `email`, and a `user_roles` array (e.g., `["user"]` or `["admin"]`).
+  - The API Gateway validates and decodes the token **statelessly without querying a database or calling the user-service** on every request.
+- **Role-Based Access Control (RBAC):**
+  - Gateway inspects `user_roles` from the JWT claims against the permission matrix defined in [config/permissions.json](config/permissions.json).
+  - Supports route patterns: wildcard `*`, prefix `/*`, and path parameter `:param`.
+  - Rejects unauthorized requests with `401 Unauthorized` (missing/invalid token) or `403 Forbidden` (insufficient role privileges).
+- **Context Header Injection:** Automatically injects and propagates standard headers to downstream services:
+  - `X-User-ID`: User UUID identifier.
+  - `X-User-Email`: User email address.
+  - `X-User-Roles`: Comma-separated list of roles (e.g., `user,admin`).
+  - `X-Request-ID`: Unique correlation request ID.
+- **Structured Logging & CORS:** Centralized CORS policy enforcement and structured request logging.
 
-## 2. Cấu trúc thư mục
+## 2. Directory Structure
 
 ```text
 music-api-gateway/
 ├── cmd/
-│   └── main.go                  # Entry point chạy standalone gateway
+│   └── main.go                  # Standalone gateway entry point
 ├── config/
-│   ├── config.go                # Struct và loader cấu hình (Viper)
-│   ├── gateway.development.yaml # Cấu hình routes và server
-│   └── permissions.json         # Ma trận phân quyền theo từng role và method/path
+│   ├── config.go                # Configuration structs and Viper loader
+│   ├── gateway.development.yaml # Route and server configuration
+│   └── permissions.json         # RBAC permission matrix by role, HTTP method, and path
 ├── middlewares/
-│   ├── auth.go                  # Xác thực JWT stateless & phân quyền API
+│   ├── auth.go                  # Stateless JWT authentication & RBAC middleware
 │   ├── logger.go                # Structured logging middleware (zerolog)
-│   └── request_id.go            # Request ID header tracking
+│   └── request_id.go            # Request ID correlation tracking
 ├── permissions/
-│   └── evaluator.go             # Engine kiểm tra quyền theo role & pattern (*, /*, :param)
+│   └── evaluator.go             # Permission evaluation engine (*, /*, :param)
 ├── proxy.go                     # Reverse proxy handler (httputil.ReverseProxy)
-├── server.go                    # Gin engine server, routing, health check, CORS
+├── server.go                    # Gin engine initialization, routing, health check, CORS
 └── README.md
 ```
 
-## 3. Ma trận phân quyền (permissions.json)
+## 3. Permission Matrix (permissions.json)
 
 ```json
 {
@@ -88,19 +88,19 @@ music-api-gateway/
 }
 ```
 
-## 4. Cách chạy Gateway
+## 4. Running the Gateway
 
-Từ thư mục `music-api-gateway`:
+From the `music-api-gateway` directory:
 
 ```bash
-# Tải dependencies nếu cần
+# Download dependencies if needed
 go mod tidy
 
-# Chạy standalone gateway
+# Run standalone gateway
 go run ./cmd/main.go -config=./config/gateway.development.yaml
 ```
 
-Kiểm tra health check:
+Check health status:
 ```bash
 curl http://localhost:8000/health
 ```

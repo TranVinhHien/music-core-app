@@ -17,23 +17,23 @@ except ImportError:
 
 class AudioAnalyzerService:
     """
-    Dịch vụ trích xuất thông tin âm học (BPM, Key, Camelot, Cue points, Downbeats, Energy, LUFS)
-    sử dụng engine AudioAnalyzer từ music-listening.
+    Acoustic feature extraction service (BPM, Key, Camelot, Cue points, Downbeats, Energy, LUFS)
+    using the AudioAnalyzer engine from music-listening.
     """
 
     def __init__(self, sample_rate: int = 22050):
         if AudioAnalyzer is None:
             raise ImportError(
-                f"Không thể import AudioAnalyzer từ {LISTENING_DIR}. Vui lòng kiểm tra thư mục music-listening và thư viện âm thanh."
+                f"Cannot import AudioAnalyzer from {LISTENING_DIR}. Please check the music-listening directory and dependencies."
             )
         self.analyzer = AudioAnalyzer(sample_rate=sample_rate)
 
     def analyze_audio(self, file_path: str, track_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Phân tích file audio cục bộ và trả về payload chuẩn SaveTrackAudioAnalysisDto để đẩy lên Catalog API.
+        Analyzes a local audio file and returns standard SaveTrackAudioAnalysisDto payload for the Catalog API.
         """
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"File audio không tồn tại: {file_path}")
+            raise FileNotFoundError(f"Audio file not found: {file_path}")
 
         start_time = time.time()
         profile = self.analyzer.analyze(file_path=file_path, track_id=track_id)
@@ -71,7 +71,7 @@ class AudioAnalyzerService:
         }
 
     def build_failed_payload(self, duration_ms: int = 0, error_message: str = "") -> Dict[str, Any]:
-        """Tạo payload báo lỗi nếu quá trình phân tích âm học thất bại."""
+        """Builds error payload if acoustic feature extraction fails."""
         return {
             "cueInMs": 0,
             "cueOutMs": 0,

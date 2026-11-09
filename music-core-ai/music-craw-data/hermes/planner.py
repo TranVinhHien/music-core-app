@@ -13,11 +13,10 @@ console = Console()
 class HermesPlanner:
     """
     Hermes Planner:
-    Chuyên gia phân tích và lập kế hoạch chiến lược:
-    - Phân tích mục tiêu người dùng (kể cả quy mô cực lớn như 1000 bài hát).
-    - Phân rã mục tiêu (Goal Decomposition) thành danh sách các đầu việc (Checklist Tasks)
-      rõ ràng, cân đối về số lượng và phong phú về thể loại/chủ đề.
-    - Đảm bảo không bao giờ bị nghẽn token của LLM bằng cách chia nhỏ thành các batch khả thi.
+    Strategic analysis and goal decomposition engine:
+    - Analyzes user goals (even large scale such as 1,000 tracks).
+    - Decomposes goals into a structured Execution Checklist of balanced subtasks.
+    - Prevents LLM context window depletion by chunking into feasible batches.
     """
 
     def __init__(self, config_or_path: Any = "config.yaml"):
@@ -46,9 +45,9 @@ class HermesPlanner:
 
     def create_plan(self, user_prompt: str) -> HermesPlan:
         """
-        Phân tích prompt của người dùng và tạo ra 1 HermesPlan chứa Checklist các việc cần làm.
+        Analyzes user prompt and generates a HermesPlan containing an Execution Checklist.
         """
-        console.print("[dim]🧠 [Hermes Planner] Đang phân tích mục tiêu & thiết kế Checklist chiến lược...[/dim]")
+        console.print("[dim]🧠 [Hermes Planner] Analyzing target & designing strategic Checklist...[/dim]")
 
         system_prompt = (
             "Bạn là Hermes Master Planner - Kiến trúc sư lập kế hoạch crawl và giám tuyển âm nhạc hàng đầu.\n"
@@ -115,12 +114,12 @@ class HermesPlanner:
         total_target = parsed.get("total_target_count", 1)
         tasks_data = parsed.get("tasks", [])
 
-        # Kiểm tra và điều chỉnh target_count nếu tổng task không khớp
+        # Verify and balance target_count if subtask counts mismatch
         if not tasks_data:
             tasks_data = [
                 {
                     "index": 1,
-                    "title": f"Cào dữ liệu: {user_prompt}",
+                    "title": f"Crawl: {user_prompt}",
                     "category": "General",
                     "description": user_prompt,
                     "intent_type": "CURATED_BATCH",
@@ -129,7 +128,7 @@ class HermesPlanner:
                 }
             ]
 
-        # Khởi tạo models
+        # Initialize models
         checklist_tasks: List[ChecklistTask] = []
         for idx, t in enumerate(tasks_data, 1):
             target = t.get("target_count", 1)
@@ -163,7 +162,7 @@ class HermesPlanner:
         )
 
     def _build_fallback_plan_dict(self, prompt: str) -> Dict[str, Any]:
-        """Tạo kế hoạch dự phòng nếu LLM gặp sự cố"""
+        """Builds fallback plan if LLM encounters issues."""
         lower = prompt.lower()
         if "1000" in lower:
             target = 1000

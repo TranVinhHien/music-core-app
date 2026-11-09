@@ -145,7 +145,7 @@ class DownloaderService:
                 from mutagen.mp4 import MP4
                 actual_duration_ms = int(MP4(final_file_path).info.length * 1000)
         except Exception as e:
-            print(f"[Downloader] Lỗi đọc duration file: {e}")
+            print(f"[Downloader] Error reading file duration: {e}")
 
         return {
             "success": True,

@@ -3,10 +3,10 @@ from typing import List, Dict, Tuple, Any
 
 class ArtistParser:
     """
-    Parser chuyên xử lý tên bài hát và danh sách ca sĩ:
-    - Nhận diện nghệ sĩ chính (PRIMARY) và nghệ sĩ kết hợp / hợp tác (FEAT).
-    - Hỗ trợ các định dạng: 'A & B', 'A x B', 'A vs B', 'A, B & C', 'A feat. B', 'A ft. B', 'A featuring B'.
-    - Xử lý feat nằm trong tên bài hát (VD: 'Baby (feat. marzuz)', 'Huh (feat. RPT Orijinn & Thành Draw)').
+    Parser specialized in handling track titles and artist strings:
+    - Identifies primary artists (PRIMARY) and featured / collaborating artists (FEAT).
+    - Supports delimiters: 'A & B', 'A x B', 'A vs B', 'A, B & C', 'A feat. B', 'A ft. B', 'A featuring B'.
+    - Handles embedded featured artists in track titles (e.g. 'Baby (feat. marzuz)', 'Huh (feat. RPT Orijinn & Thanh Draw)').
     """
 
     FEAT_PATTERNS = [
@@ -18,7 +18,7 @@ class ArtistParser:
 
     @classmethod
     def _split_names(cls, text: str) -> List[str]:
-        """Tách chuỗi nhiều nghệ sĩ theo các dấu phân tách thông dụng"""
+        """Splits multi-artist string by common delimiter tokens."""
         names = [text]
         for delim in cls.DELIMITERS:
             new_names = []
@@ -28,7 +28,7 @@ class ArtistParser:
                     if sub_clean:
                         new_names.append(sub_clean)
             names = new_names
-        # Lọc trùng giữ thứ tự
+        # Deduplicate while preserving order
         seen = set()
         unique = []
         for n in names:
@@ -41,26 +41,26 @@ class ArtistParser:
     @classmethod
     def parse(cls, artist_str: str, track_title: str) -> Tuple[List[Dict[str, Any]], str]:
         """
-        Phân tích artist_str và track_title.
-        Trả về:
-        - List các dict: [{"name": "...", "role": "PRIMARY" | "FEAT", "position": 1, ...}]
-        - Clean track title (đã chuẩn hóa, có thể giữ hoặc lược bỏ feat)
+        Parses artist_str and track_title.
+        Returns:
+        - List of dicts: [{"name": "...", "role": "PRIMARY" | "FEAT", "position": 1, ...}]
+        - Clean track title (normalized, removing embedded feat clauses)
         """
         primary_artists: List[str] = []
         feat_artists: List[str] = []
         clean_title = track_title.strip()
 
-        # 1. Trích xuất featured artists từ trong tên bài hát (nếu có)
+        # 1. Extract featured artists from track title if present
         for pat in cls.FEAT_PATTERNS:
             match = pat.search(clean_title)
             if match:
                 feat_str = match.group(1).strip()
                 feat_artists.extend(cls._split_names(feat_str))
-                # Xóa phần (feat. ...) khỏi title để lấy title sạch
+                # Remove (feat. ...) from title to obtain clean title
                 clean_title = pat.sub('', clean_title).strip()
                 break
 
-        # 2. Trích xuất từ artist_str
+        # 2. Extract from artist_str
         art_clean = artist_str.strip()
         has_feat_in_artist = False
         for pat in cls.FEAT_PATTERNS:
@@ -72,10 +72,10 @@ class ArtistParser:
                 art_clean = pat.sub('', art_clean).strip()
                 break
 
-        # Tách các nghệ sĩ chính còn lại
+        # Extract remaining primary artists
         primary_artists.extend(cls._split_names(art_clean))
 
-        # 3. Tạo cấu trúc chuẩn cho Catalog Microservice
+        # 3. Build standardized structure for Catalog Microservice
         results: List[Dict[str, Any]] = []
         seen_names = set()
         pos = 1

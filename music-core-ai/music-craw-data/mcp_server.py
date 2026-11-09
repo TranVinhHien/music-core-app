@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Music Crawler & Catalog MCP Server.
-Triển khai chuẩn Model Context Protocol (MCP) qua standard I/O (JSON-RPC 2.0).
-Cho phép mọi AI Agent hoặc IDE kết nối và sử dụng bộ tool này trực tiếp.
+Implements Model Context Protocol (MCP) standard over standard I/O (JSON-RPC 2.0).
+Allows any AI Agent or IDE to invoke these tools directly.
 """
 
 import sys
@@ -34,86 +34,86 @@ audio_analyzer = AudioAnalyzerService()
 TOOLS_SCHEMA = [
     {
         "name": "search_music_online",
-        "description": "Tìm kiếm danh sách bài hát / nghệ sĩ / album trực tuyến từ iTunes và Deezer.",
+        "description": "Searches for track / artist / album candidates online via iTunes and Deezer.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Tên bài hát hoặc tên nghệ sĩ."},
-                "limit": {"type": "integer", "description": "Số lượng kết quả", "default": 5}
+                "query": {"type": "string", "description": "Song title or artist name."},
+                "limit": {"type": "integer", "description": "Maximum number of results", "default": 5}
             },
             "required": ["query"]
         }
     },
     {
         "name": "get_album_tracks",
-        "description": "Lấy đầy đủ toàn bộ danh sách bài hát trong 1 album từ iTunes/Deezer.",
+        "description": "Fetches complete tracklist for an album from iTunes/Deezer.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "album_name": {"type": "string", "description": "Tên album."},
-                "artist_name": {"type": "string", "description": "Tên nghệ sĩ chính."}
+                "album_name": {"type": "string", "description": "Album title."},
+                "artist_name": {"type": "string", "description": "Primary artist name."}
             },
             "required": ["album_name"]
         }
     },
     {
         "name": "get_song_metadata",
-        "description": "Lấy chi tiết metadata chuẩn (Title, Artist, Album, Cover Art, Year, Duration).",
+        "description": "Fetches standard canonical metadata (Title, Artist, Album, Cover Art, Year, Duration).",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Tên bài hát và ca sĩ."}
+                "query": {"type": "string", "description": "Song title and artist name."}
             },
             "required": ["query"]
         }
     },
     {
         "name": "download_and_tag_song",
-        "description": "Tải stream audio từ YouTube qua yt-dlp và nhúng ID3 tag + ảnh bìa.",
+        "description": "Downloads audio stream via yt-dlp and embeds ID3 tags + cover art.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "search_query": {"type": "string", "description": "Từ khóa tìm kiếm YouTube."},
-                "metadata": {"type": "object", "description": "Metadata chi tiết của bài hát."}
+                "search_query": {"type": "string", "description": "Audio search query."},
+                "metadata": {"type": "object", "description": "Track metadata details."}
             },
             "required": ["search_query", "metadata"]
         }
     },
     {
         "name": "upload_audio_to_storage",
-        "description": "Upload file âm thanh lên S3/Storage để lấy URL lưu trữ công khai.",
+        "description": "Uploads audio file to S3/Storage to obtain persistent URL.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "local_file_path": {"type": "string", "description": "Đường dẫn file MP3 cục bộ."}
+                "local_file_path": {"type": "string", "description": "Local audio file path."}
             },
             "required": ["local_file_path"]
         }
     },
     {
         "name": "register_track_to_catalog",
-        "description": "Đăng ký bài hát, hỗ trợ tự động bóc tách đa ca sĩ (PRIMARY & FEAT), album vào Catalog Microservice.",
+        "description": "Registers track with automated multi-artist parsing (PRIMARY & FEAT) and album in Catalog Microservice.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "title": {"type": "string", "description": "Tên bài hát."},
-                "artist_name": {"type": "string", "description": "Tên nghệ sĩ (hỗ trợ &, feat, ft, v.v.)."},
-                "album_title": {"type": "string", "description": "Tên album."},
-                "file_url": {"type": "string", "description": "URL lưu trữ file nhạc."},
-                "cover_image_url": {"type": "string", "description": "URL ảnh bìa."},
-                "duration_ms": {"type": "integer", "description": "Thời lượng mili-giây."}
+                "title": {"type": "string", "description": "Track title."},
+                "artist_name": {"type": "string", "description": "Artist string (supports &, feat, ft, etc.)."},
+                "album_title": {"type": "string", "description": "Album title."},
+                "file_url": {"type": "string", "description": "Audio asset URL."},
+                "cover_image_url": {"type": "string", "description": "Cover art URL."},
+                "duration_ms": {"type": "integer", "description": "Duration in milliseconds."}
             },
             "required": ["title", "artist_name", "file_url"]
         }
     },
     {
         "name": "pipeline_crawl_and_register",
-        "description": "Thực hiện trọn gói toàn bộ pipeline: Tìm kiếm -> Tải & Tag -> Upload S3 -> Đăng ký Catalog API với phân loại ca sĩ.",
+        "description": "Executes full pipeline: Search -> Download & Tag -> Upload S3 -> Register Catalog API.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "song_title": {"type": "string", "description": "Tên bài hát."},
-                "artist_name": {"type": "string", "description": "Tên nghệ sĩ."}
+                "song_title": {"type": "string", "description": "Track title."},
+                "artist_name": {"type": "string", "description": "Artist name."}
             },
             "required": ["song_title"]
         }
@@ -195,7 +195,7 @@ def handle_call_tool(name: str, arguments: Dict[str, Any]) -> Any:
     raise ValueError(f"Unknown tool: {name}")
 
 def main():
-    """Vòng lặp JSON-RPC 2.0 stdio cho MCP"""
+    """JSON-RPC 2.0 stdio server loop for MCP."""
     for line in sys.stdin:
         if not line.strip():
             continue

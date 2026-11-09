@@ -4,8 +4,8 @@ from services.artist_parser import ArtistParser
 
 class CatalogService:
     """
-    Client giao tiếp với Backend music-catalog-service (NestJS) qua REST API.
-    Tự động phân tách và liên kết nhiều nghệ sĩ (PRIMARY, FEAT), Album và Track.
+    Client communicating with the NestJS music-catalog-service over REST API.
+    Handles artist parsing (PRIMARY, FEAT), Album, and Track registration.
     """
 
     def __init__(self, base_url: str = "http://localhost:3002/api/v1/catalog"):
@@ -19,13 +19,13 @@ class CatalogService:
 
     def find_or_create_artist(self, artist_name: str, image_url: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
-        Tìm Artist theo tên; nếu chưa có thì tự động tạo mới.
+        Finds an artist by name; automatically creates a new record if not found.
         """
         clean_name = artist_name.strip()
         if not clean_name:
             return None
 
-        # 1. Tìm trong danh sách hiện tại
+        # 1. Look up in existing artists
         try:
             get_resp = requests.get(
                 f"{self.base_url}/artists",
@@ -40,9 +40,9 @@ class CatalogService:
                     if item.get("name", "").strip().lower() == clean_name.lower():
                         return item
         except Exception as e:
-            print(f"[CatalogService] Lỗi kết nối danh sách Artist: {e}")
+            print(f"[CatalogService] Error connecting to Artists list: {e}")
 
-        # 2. Tạo mới Artist nếu chưa có
+        # 2. Create new artist if not found
         try:
             payload = {
                 "name": clean_name,
@@ -58,24 +58,24 @@ class CatalogService:
             if post_resp.status_code in [200, 201]:
                 res_data = post_resp.json()
                 artist = res_data.get("data", res_data)
-                print(f"[CatalogService] ✓ Đã tạo Artist mới: {clean_name} (ID: {artist.get('id')})")
+                print(f"[CatalogService] ✓ Created new Artist: {clean_name} (ID: {artist.get('id')})")
                 return artist
             else:
-                print(f"[CatalogService] Lỗi tạo Artist '{clean_name}': {post_resp.status_code} - {post_resp.text}")
+                print(f"[CatalogService] Failed to create Artist '{clean_name}': {post_resp.status_code} - {post_resp.text}")
         except Exception as e:
-            print(f"[CatalogService] Ngoại lệ tạo Artist: {e}")
+            print(f"[CatalogService] Exception creating Artist: {e}")
 
         return None
 
     def find_or_create_album(self, album_title: str, artist_id: Optional[str] = None, release_date: Optional[str] = None, cover_image_url: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
-        Tìm Album theo tên; nếu chưa có thì tự động tạo mới.
+        Finds an album by title; automatically creates a new record if not found.
         """
         clean_title = album_title.strip()
         if not clean_title:
             return None
 
-        # 1. Tìm album
+        # 1. Search for existing album
         try:
             get_resp = requests.get(
                 f"{self.base_url}/albums",
@@ -90,9 +90,9 @@ class CatalogService:
                     if item.get("title", "").strip().lower() == clean_title.lower():
                         return item
         except Exception as e:
-            print(f"[CatalogService] Lỗi kết nối danh sách Album: {e}")
+            print(f"[CatalogService] Error connecting to Albums list: {e}")
 
-        # 2. Tạo mới Album
+        # 2. Create new album
         try:
             payload: Dict[str, Any] = {
                 "title": clean_title,
@@ -112,12 +112,12 @@ class CatalogService:
             if post_resp.status_code in [200, 201]:
                 res_data = post_resp.json()
                 album = res_data.get("data", res_data)
-                print(f"[CatalogService] ✓ Đã tạo Album mới: {clean_title} (ID: {album.get('id')})")
+                print(f"[CatalogService] ✓ Created new Album: {clean_title} (ID: {album.get('id')})")
                 return album
             else:
-                print(f"[CatalogService] Lỗi tạo Album '{clean_title}': {post_resp.status_code} - {post_resp.text}")
+                print(f"[CatalogService] Failed to create Album '{clean_title}': {post_resp.status_code} - {post_resp.text}")
         except Exception as e:
-            print(f"[CatalogService] Ngoại lệ tạo Album: {e}")
+            print(f"[CatalogService] Exception creating Album: {e}")
 
         return None
 
@@ -133,16 +133,16 @@ class CatalogService:
                             disc_number: Optional[int] = None,
                             sources: Optional[List[Dict[str, str]]] = None) -> Dict[str, Any]:
         """
-        Đăng ký Track hoàn chỉnh:
-        - Tự động phân tách đa nghệ sĩ (PRIMARY, FEAT) từ raw_artist và raw_title.
-        - Tạo Artist records nếu chưa tồn tại.
-        - Tạo Album record nếu có.
-        - Đăng ký Track với liên kết đa nghệ sĩ.
+        Registers a complete Track:
+        - Separates multiple artists (PRIMARY, FEAT) from raw_artist and raw_title.
+        - Creates Artist records if they do not exist.
+        - Creates Album record if present.
+        - Registers Track with relational artist mappings.
         """
-        # 1. Phân tách danh sách nghệ sĩ và chuẩn hóa tiêu đề bài hát
+        # 1. Parse artist list and normalize track title
         parsed_artists, clean_title = ArtistParser.parse(raw_artist, raw_title)
         
-        # 2. Tạo hoặc lấy artist records cho từng nghệ sĩ
+        # 2. Fetch or create artist records
         track_artists_dto = []
         primary_artist_id = None
 
@@ -158,7 +158,7 @@ class CatalogService:
                 if art["role"] == "PRIMARY" and not primary_artist_id:
                     primary_artist_id = art_id
 
-        # 3. Tạo hoặc lấy album record
+        # 3. Fetch or create album record
         album_id = None
         if album_title:
             album_rec = self.find_or_create_album(
@@ -169,9 +169,9 @@ class CatalogService:
             )
             album_id = album_rec.get("id") if album_rec else None
 
-        # 4. Tạo Track payload
+        # 4. Construct Track payload
         payload: Dict[str, Any] = {
-            "title": raw_title,  # Giữ tên gốc hoặc clean_title
+            "title": raw_title,  # Preserve original title or clean_title
             "fileUrl": file_url,
             "status": "ACTIVE"
         }
@@ -202,7 +202,7 @@ class CatalogService:
             if resp.status_code in [200, 201]:
                 data = resp.json()
                 artist_summary = ", ".join([f"{a['name']} ({a['role']})" for a in parsed_artists])
-                print(f"[CatalogService] ✓ Đã đăng ký Track: '{raw_title}' - Nghệ sĩ: [{artist_summary}]")
+                print(f"[CatalogService] ✓ Registered Track: '{raw_title}' - Artists: [{artist_summary}]")
                 return {
                     "success": True,
                     "catalog_id": data.get("data", {}).get("id") or data.get("id"),
@@ -218,13 +218,13 @@ class CatalogService:
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Ngoại lệ kết nối Catalog Service: {str(e)}",
+                "error": f"Exception connecting to Catalog Service: {str(e)}",
                 "payload_sent": payload
             }
 
     def update_audio_analysis(self, track_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Cập nhật kết quả phân tích âm học (BPM, key, camelot, cues, energy, lufs...) lên Catalog Service.
+        Updates acoustic analysis metrics (BPM, key, camelot, cues, energy, lufs...) to Catalog Service.
         Endpoint: PUT /api/v1/catalog/tracks/{track_id}/audio-analysis
         """
         clean_track_id = str(track_id).strip()
@@ -250,6 +250,6 @@ class CatalogService:
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Ngoại lệ cập nhật Audio Analysis: {str(e)}"
+                "error": f"Exception updating Audio Analysis: {str(e)}"
             }
 

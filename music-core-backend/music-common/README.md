@@ -1,6 +1,6 @@
 # Music Common Go Library (`music-common`)
 
-Thư viện dùng chung (Shared Common Module) cho toàn bộ hệ thống microservices backend (`music-core-backend`).
+Shared Common Module for the backend microservices architecture (`music-core-backend`).
 
 ## Module Path
 ```go
@@ -9,9 +9,9 @@ import "github.com/TranVinhHien/music-core-app/music-core-backend/music-common"
 
 ---
 
-## 1. DTO & Chuẩn Hóa Phản Hồi API (`response`)
+## 1. DTO & Standard API Response Envelope (`response`)
 
-Mọi API trong hệ sinh thái trả về envelope chuẩn:
+All APIs across the ecosystem return a standardized response envelope:
 ```json
 {
   "code": "200",
@@ -21,33 +21,33 @@ Mọi API trong hệ sinh thái trả về envelope chuẩn:
 }
 ```
 
-### Sử dụng trong Gin Handler:
+### Usage in Gin Handlers:
 ```go
 import "github.com/TranVinhHien/music-core-app/music-core-backend/music-common/response"
 
-// 1. Phản hồi thành công (200 OK)
+// 1. Successful response (200 OK)
 response.Success(c, userProfile)
-response.OK(c, "Cập nhật thành công", userProfile)
+response.OK(c, "Updated successfully", userProfile)
 
-// 2. Phản hồi tạo mới (201 Created)
-response.Created(c, "Tạo playlist thành công", newPlaylist)
+// 2. Resource creation response (201 Created)
+response.Created(c, "Playlist created successfully", newPlaylist)
 
-// 3. Phản hồi danh sách phân trang
+// 3. Paginated list response
 response.Paginated(c, items, meta)
 
-// 4. Phản hồi lỗi chuẩn
-response.BadRequest(c, errors.New("Email không hợp lệ"))
-response.Unauthorized(c, "Token hết hạn")
-response.Forbidden(c, "Bạn không có quyền truy cập")
-response.NotFound(c, "Không tìm thấy bài hát")
+// 4. Standard error responses
+response.BadRequest(c, errors.New("Invalid email format"))
+response.Unauthorized(c, "Token expired")
+response.Forbidden(c, "Access denied")
+response.NotFound(c, "Track not found")
 response.InternalServerError(c, err)
 ```
 
 ---
 
-## 2. Phân Trang Chuẩn (`pagination`)
+## 2. Standard Pagination (`pagination`)
 
-Hỗ trợ chuẩn hóa request query và metadata trả về:
+Standardizes query binding and pagination metadata formatting:
 
 ```go
 import "github.com/TranVinhHien/music-core-app/music-core-backend/music-common/pagination"
@@ -59,10 +59,10 @@ func ListSongs(c *gin.Context) {
         return
     }
 
-    // Tự động validate & tính offset/limit an toàn
+    // Automatically validates and computes safe offset/limit
     offset := query.GetOffset()
     limit := query.GetLimit()
-    order := query.GetOrder() // "ASC" hoặc "DESC"
+    order := query.GetOrder() // "ASC" or "DESC"
 
     songs, total, err := songRepo.Find(offset, limit, query.Sort, order)
     if err != nil {
@@ -77,63 +77,63 @@ func ListSongs(c *gin.Context) {
 
 ---
 
-## 3. Middlewares Dùng Chung (`middleware`)
+## 3. Shared Middlewares (`middleware`)
 
-### Đăng ký Middleware trong Router:
+### Middleware Registration in Router:
 ```go
 import "github.com/TranVinhHien/music-core-app/music-core-backend/music-common/middleware"
 
 r := gin.New()
-r.Use(middleware.RequestID())            // Tự động sinh hoặc chuyển tiếp X-Request-ID
-r.Use(middleware.UserContextMiddleware()) // Trích xuất X-User-ID, X-User-Email, X-User-Roles từ Gateway
-r.Use(middleware.CORS())                 // CORS chuẩn
+r.Use(middleware.RequestID())            // Generates or forwards X-Request-ID
+r.Use(middleware.UserContextMiddleware()) // Extracts X-User-ID, X-User-Email, X-User-Roles from Gateway
+r.Use(middleware.CORS())                 // Standard CORS policy
 r.Use(middleware.Logger(logger))         // Zerolog HTTP Logger
 ```
 
-### Trích xuất thông tin người dùng trong bất kỳ Handler nào:
+### Extract User Context in Any Handler:
 ```go
 func GetProfile(c *gin.Context) {
-    // Lấy UserID dạng uuid.UUID an toàn
+    // Safely extract typed uuid.UUID UserID
     userID, ok := middleware.GetUserID(c)
     if !ok {
         response.Unauthorized(c)
         return
     }
 
-    // Lấy Email
+    // Extract Email
     email := middleware.GetUserEmail(c)
 
-    // Lấy Roles
+    // Extract Roles
     roles := middleware.GetUserRoles(c) // []string{"user", "creator"}
 
-    // Kiểm tra quyền
+    // Evaluate permissions
     if middleware.HasRole(c, "creator") {
         // ...
     }
 }
 ```
 
-### Bảo vệ Route theo Role:
+### Role-Based Route Protection:
 ```go
-// Yêu cầu bắt buộc đăng nhập (có user_id)
+// Enforce authenticated requests (user_id present)
 api.Use(middleware.RequireAuth())
 
-// Yêu cầu quyền admin
+// Require admin privileges
 adminGroup := api.Group("/admin")
 adminGroup.Use(middleware.RequireRole("admin"))
 ```
 
 ---
 
-## 4. Gọi Request External & Gọi Giữa Các Microservices (`httpclient`)
+## 4. Inter-Service & External HTTP Client (`httpclient`)
 
-Package `httpclient` cung cấp HTTP client production-ready:
-- Tự động parse / serialize JSON.
-- Tự động retry khi gặp lỗi mạng hoặc mã 502, 503, 504 (kèm exponential backoff).
-- Context timeout support.
-- **Tự động chuyển tiếp (propagate) headers từ Gin context** (`X-Request-ID`, `X-User-ID`, `X-User-Email`, `X-User-Roles`, `Authorization`) sang service tiếp theo!
+The `httpclient` package provides a production-ready HTTP client:
+- Automatic JSON serialization and deserialization.
+- Automatic retries on network failures or 502, 503, 504 errors with exponential backoff.
+- Context cancellation and timeout support.
+- **Context propagation**: Automatically extracts and propagates headers from Gin context (`X-Request-ID`, `X-User-ID`, `X-User-Email`, `X-User-Roles`, `Authorization`) to downstream requests!
 
-### Khởi tạo Client:
+### Client Initialization:
 ```go
 import "github.com/TranVinhHien/music-core-app/music-core-backend/music-common/httpclient"
 
@@ -145,12 +145,12 @@ client := httpclient.NewClient(
 )
 ```
 
-### Gọi External API từ trong một Gin Handler (chuyển tiếp context người dùng):
+### Calling External APIs from a Gin Handler (with Context Propagation):
 ```go
 func StreamTrack(c *gin.Context) {
     trackID := c.Param("id")
 
-    // FromGinContext tự động gắn X-Request-ID và X-User-ID của request hiện tại sang request mới
+    // FromGinContext automatically binds X-Request-ID and X-User-ID of the current request to the outbound call
     scopedClient := client.FromGinContext(c)
 
     var trackMetadata TrackInfoDTO
@@ -164,12 +164,12 @@ func StreamTrack(c *gin.Context) {
 }
 ```
 
-### Các hàm gọi đơn giản:
+### Convenience HTTP Methods:
 ```go
 // GET
 err := client.Get(ctx, "/path", &resultDTO)
 
-// POST với JSON Body
+// POST with JSON body
 err := client.Post(ctx, "/path", requestPayload, &resultDTO)
 
 // PUT

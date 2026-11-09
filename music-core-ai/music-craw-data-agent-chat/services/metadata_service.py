@@ -3,8 +3,8 @@ from typing import Optional, Dict, Any, List
 
 class MetadataService:
     """
-    Dịch vụ tìm kiếm metadata chuẩn (Title, Artist, Album, Cover Art, Year, Genre).
-    Kết hợp iTunes API và Deezer API miễn phí, không cần token.
+    Standardized metadata resolution service (Title, Artist, Album, Cover Art, Year, Genre).
+    Combines iTunes API and Deezer API without authentication requirements.
     """
 
     @staticmethod
@@ -41,7 +41,7 @@ class MetadataService:
                         "cover_url": cover_url
                     })
         except Exception as e:
-            print(f"[MetadataService] Lỗi gọi iTunes API: {e}")
+            print(f"[MetadataService] Error calling iTunes API: {e}")
         return results
 
     @staticmethod
@@ -69,12 +69,12 @@ class MetadataService:
                         "cover_url": album.get("cover_xl") or album.get("cover_big") or album.get("cover_medium")
                     })
         except Exception as e:
-            print(f"[MetadataService] Lỗi gọi Deezer API: {e}")
+            print(f"[MetadataService] Error calling Deezer API: {e}")
         return results
 
     @classmethod
     def get_metadata(cls, query: str) -> Optional[Dict[str, Any]]:
-        """Lấy 1 bài hát khớp nhất"""
+        """Retrieves best matching metadata for a single track."""
         res = cls.search_itunes(query, limit=1)
         if res:
             return res[0]
@@ -83,7 +83,7 @@ class MetadataService:
 
     @classmethod
     def search_candidates(cls, query: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Tìm danh sách bài hát gợi ý cho Agent lên kế hoạch"""
+        """Searches track candidates to assist Agent planning."""
         res = cls.search_itunes(query, limit=limit)
         if len(res) < limit:
             dz_items = cls.search_deezer(query, limit=limit - len(res))

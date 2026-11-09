@@ -1,34 +1,34 @@
 # Music Core Bruno API Collection
 
-Bộ sưu tập kiểm thử API cho hệ thống microservices Music Core App thông qua Bruno API Client.
+API testing collection for the Music Core App microservices architecture using the Bruno API Client.
 
-## Cấu trúc thư mục
+## Directory Structure
 
-- `auth/`: Đăng ký, đăng nhập, cấp lại token (User Service).
-- `user/`: Quản lý thông tin hồ sơ người dùng (User Service).
-- `media/`: Tải lên tài sản truyền thông, avatar (User Service).
-- `catalog/`: Quản lý danh mục âm nhạc (Catalog Service).
-  - `artists/`: CRUD Nghệ sĩ (Create, List, Details, Update, Delete).
-  - `albums/`: CRUD Album và quan hệ nghệ sĩ.
-  - `tracks/`: CRUD Bài hát, liên kết nghệ sĩ, thể loại, nguồn nhạc.
-  - `genres/`: CRUD Thể loại âm nhạc theo dạng cây cha-con.
-- `library/`: Quản lý thư viện cá nhân người dùng (Library Service).
-  - `playlists/`: CRUD Playlist, thêm/xóa bài hát vào playlist, tự động enrich metadata từ Catalog.
-  - `favorites/`: Thêm/xóa bài hát yêu thích, lấy danh sách kèm metadata từ Catalog.
-- `listening-events/`: Thu thập sự kiện nghe nhạc thời gian thực (Listening Event Service).
-  - `Health Check.bru`: Kiểm tra trạng thái service.
-  - `Ingest Batch - Playback Events.bru`: Batch sự kiện playback (`TRACK_STARTED`, `TRACK_PAUSED`, `TRACK_COMPLETED`).
-  - `Ingest Batch - Discovery & Search.bru`: Batch sự kiện tìm kiếm (`SEARCH_PERFORMED`).
-  - `Ingest Batch - Library & Playlist.bru`: Batch sự kiện thư viện & playlist (`TRACK_FAVORITED`, `TRACK_ADDED_TO_PLAYLIST`, `PLAYLIST_PLAYED`).
-  - `Ingest Single Event.bru`: Gửi sự kiện đơn lẻ.
+- `auth/`: Registration, login, token refresh (User Service).
+- `user/`: User profile management (User Service).
+- `media/`: Media asset & avatar uploads (User Service).
+- `catalog/`: Music catalog management (Catalog Service).
+  - `artists/`: Artist CRUD (Create, List, Details, Update, Delete).
+  - `albums/`: Album CRUD and artist associations.
+  - `tracks/`: Track CRUD, artist relations, genre tagging, streaming sources.
+  - `genres/`: Music genre CRUD with hierarchical parent-child trees.
+- `library/`: Personal user library management (Library Service).
+  - `playlists/`: Playlist CRUD, add/remove tracks, auto-enrichment from Catalog.
+  - `favorites/`: Add/remove favorites, fetch favorite list with Catalog metadata.
+- `listening-events/`: Real-time music playback and user interaction telemetry (Listening Event Service).
+  - `Health Check.bru`: Service health probe.
+  - `Ingest Batch - Playback Events.bru`: Batch playback events (`TRACK_STARTED`, `TRACK_PAUSED`, `TRACK_COMPLETED`).
+  - `Ingest Batch - Discovery & Search.bru`: Batch search events (`SEARCH_PERFORMED`).
+  - `Ingest Batch - Library & Playlist.bru`: Batch library & playlist events (`TRACK_FAVORITED`, `TRACK_ADDED_TO_PLAYLIST`, `PLAYLIST_PLAYED`).
+  - `Ingest Single Event.bru`: Ingest a single event.
 
-## Hướng dẫn sử dụng
+## Usage Guide
 
-1. Mở thư mục này trong ứng dụng **Bruno**.
-2. Chọn Environment: **Local**.
-3. Cấu hình biến môi trường (`environments/Local.bru`):
-   - `base_url`: `http://localhost:8000` (URL qua API Gateway).
-   - `catalog_direct_url`: `http://localhost:3002` (URL kết nối trực tiếp Catalog Service).
-   - `library_direct_url`: `http://localhost:3003` (URL kết nối trực tiếp Library Service).
-   - `listening_events_direct_url`: `http://localhost:3004` (URL kết nối trực tiếp Listening Event Service).
-   - `token`: Bearer access token (lấy từ request login trong thư mục `auth`).
+1. Open this directory in the **Bruno** application.
+2. Select Environment: **Local**.
+3. Configure environment variables (`environments/Local.bru`):
+   - `base_url`: `http://localhost:8000` (API Gateway URL).
+   - `catalog_direct_url`: `http://localhost:3002` (Direct Catalog Service URL).
+   - `library_direct_url`: `http://localhost:3003` (Direct Library Service URL).
+   - `listening_events_direct_url`: `http://localhost:3004` (Direct Listening Event Service URL).
+   - `token`: Bearer access token (obtained from login request in `auth` directory).

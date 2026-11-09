@@ -1,2 +1,9 @@
-web application
-hệ thống nghe nhạc của tôi nên có bao nhiêu phần gợi ý theo tôi nghĩ đầu tiên là : nghe danh sách các bài nhạc người dùng nghe gần đây, tiếp theo là các bài hát người dùng yêu thích. tiếp đến là các bài hát chung 1 loại(ví dụ nhạc sôi động , nhạc buồn,nhạc chill chill) và cuối cùng là nhạc nhảy ngẫu nhiên nhưng bài trước và sau có chung nhip điệu liền mạch với nhau. hướng vậy đúng không
+# Music Core Web Application
+
+## Music Recommendation & Discovery Notes
+
+Proposed recommendation architecture for the music listening experience:
+1. **Recently Played:** Tracks that the user has listened to recently.
+2. **Favorites:** Songs marked as favorites by the user.
+3. **Genre & Mood Categorization:** Tracks grouped by mood or genre (e.g., energetic/upbeat, melancholy/sad, chill/relaxing).
+4. **Intelligent Seamless Auto-DJ / Shuffle:** Algorithmic playback where consecutive tracks maintain harmonic and rhythmic continuity (matching tempo, key, and energy flow).

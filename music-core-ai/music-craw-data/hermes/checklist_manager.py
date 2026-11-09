@@ -14,8 +14,8 @@ console = Console()
 
 class HermesChecklistManager:
     """
-    Quản lý danh sách việc làm (Checklist), trạng thái tiến độ và độ bền vững (Persistence)
-    theo chuẩn kiến trúc Hermes Agent.
+    Manages execution checklists, progress states, and persistence checkpoints
+    according to the Hermes Agent pattern.
     """
 
     def __init__(self, storage_dir: str = ".hermes/plans"):
@@ -26,7 +26,7 @@ class HermesChecklistManager:
 
     @staticmethod
     def normalize_track_key(title: str, artist: str) -> str:
-        """Tạo khóa định danh duy nhất để tránh cào trùng bài hát giữa các batch"""
+        """Generates a unique deduplication key to avoid ingesting duplicate tracks across batches."""
         clean_title = re.sub(r'[\(\[\{].*?[\)\]\}]', '', title).lower().strip()
         clean_title = re.sub(r'[^\w\s]', '', clean_title)
         clean_artist = artist.lower().split("&")[0].split("feat")[0].split("ft")[0].strip()
@@ -34,7 +34,7 @@ class HermesChecklistManager:
         return f"{clean_title}::{clean_artist}"
 
     def init_plan(self, plan: HermesPlan) -> None:
-        """Khởi tạo plan và đăng ký các bài hát đã có (nếu resume)"""
+        """Initializes plan and registers completed tracks (if resuming)."""
         self.plan = plan
         self.seen_keys.clear()
         for task in self.plan.tasks:
@@ -44,7 +44,7 @@ class HermesChecklistManager:
         self.save_plan()
 
     def save_plan(self) -> str:
-        """Lưu snapshot của plan vào disk để theo dõi và hỗ trợ resume"""
+        """Persists a snapshot of the plan to disk for tracking and resumption."""
         if not self.plan:
             return ""
         self.plan.updated_at = datetime.datetime.now().isoformat()
@@ -54,14 +54,14 @@ class HermesChecklistManager:
         return filepath
 
     def load_plan(self, plan_id_or_path: str) -> HermesPlan:
-        """Tải một plan đã lưu từ disk để resume quá trình cào"""
+        """Loads a saved plan from disk to resume crawling."""
         if os.path.exists(plan_id_or_path):
             filepath = plan_id_or_path
         else:
             filepath = os.path.join(self.storage_dir, f"{plan_id_or_path}.json")
         
         if not os.path.exists(filepath):
-            raise FileNotFoundError(f"Không tìm thấy plan file: {filepath}")
+            raise FileNotFoundError(f"Plan file not found: {filepath}")
 
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -70,14 +70,14 @@ class HermesChecklistManager:
         return plan
 
     def is_seen(self, title: str, artist: str) -> bool:
-        """Kiểm tra bài hát đã được xử lý hoặc đã có trong danh sách chưa"""
+        """Checks if a track has already been processed or queued."""
         return self.normalize_track_key(title, artist) in self.seen_keys
 
     def mark_seen(self, title: str, artist: str) -> None:
         self.seen_keys.add(self.normalize_track_key(title, artist))
 
     def get_next_pending_task(self) -> Optional[ChecklistTask]:
-        """Lấy task tiếp theo chưa hoàn thành trong checklist"""
+        """Fetches the next uncompleted task in the checklist."""
         if not self.plan:
             return None
         for task in self.plan.tasks:
@@ -86,7 +86,7 @@ class HermesChecklistManager:
         return None
 
     def mark_task_status(self, task_id: str, status: TaskStatus, error: Optional[str] = None) -> None:
-        """Cập nhật trạng thái của một task trong checklist"""
+        """Updates the status of a task in the checklist."""
         if not self.plan:
             return
         for task in self.plan.tasks:
@@ -98,7 +98,7 @@ class HermesChecklistManager:
         self.save_plan()
 
     def record_track_result(self, task_id: str, result: TrackExecutionResult) -> None:
-        """Ghi nhận kết quả của 1 bài hát vào task tương ứng và cập nhật tổng số"""
+        """Records track execution result and updates total progress counts."""
         if not self.plan:
             return
         for task in self.plan.tasks:
@@ -115,13 +115,13 @@ class HermesChecklistManager:
         self.save_plan()
 
     def is_target_reached(self) -> bool:
-        """Kiểm tra xem đã đạt đủ tổng số lượng yêu cầu hay chưa"""
+        """Checks if overall target track quota is reached."""
         if not self.plan:
             return False
         return self.plan.total_crawled_count >= self.plan.total_target_count
 
     def is_all_completed(self) -> bool:
-        """Kiểm tra toàn bộ checklist đã hoàn thành hay chưa"""
+        """Checks if all tasks in checklist have finished."""
         if not self.plan:
             return True
         if self.is_target_reached():
@@ -129,7 +129,7 @@ class HermesChecklistManager:
         return all(t.status in [TaskStatus.COMPLETED, TaskStatus.SKIPPED] for t in self.plan.tasks)
 
     def display_checklist(self, subtitle: str = "") -> None:
-        """Hiển thị bảng Checklist trực quan, phản ánh chính xác trạng thái từng đầu việc"""
+        """Renders the visual execution checklist table reflecting live status of each item."""
         if not self.plan:
             return
 
@@ -138,8 +138,8 @@ class HermesChecklistManager:
         percent = (total_crawled / total_target * 100) if total_target > 0 else 100.0
 
         header_text = (
-            f"[bold cyan]🎯 Mục tiêu:[/bold cyan] {self.plan.goal}\n"
-            f"[bold white]📊 Tiến độ toàn cục:[/bold white] [bold green]{total_crawled}/{total_target} bài ({percent:.1f}%)[/bold green]"
+            f"[bold cyan]🎯 Goal:[/bold cyan] {self.plan.goal}\n"
+            f"[bold white]📊 Global Progress:[/bold white] [bold green]{total_crawled}/{total_target} tracks ({percent:.1f}%)[/bold green]"
         )
         if subtitle:
             header_text += f"\n[dim italic]{subtitle}[/dim italic]"
@@ -147,12 +147,12 @@ class HermesChecklistManager:
         console.print(Panel(header_text, title="📋 [bold yellow]HERMES AGENT EXECUTION CHECKLIST[/bold yellow]", border_style="yellow"))
 
         table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("STT", justify="center")
-        table.add_column("Trạng thái", justify="center")
-        table.add_column("Thể loại", style="cyan")
-        table.add_column("Nhiệm vụ (Checklist Item)", style="white")
-        table.add_column("Chỉ tiêu", justify="center")
-        table.add_column("Tiến độ", justify="center")
+        table.add_column("#", justify="center")
+        table.add_column("Status", justify="center")
+        table.add_column("Category", style="cyan")
+        table.add_column("Checklist Task", style="white")
+        table.add_column("Target", justify="center")
+        table.add_column("Progress", justify="center")
 
         status_icons = {
             TaskStatus.PENDING: "[dim]⏳ PENDING[/dim]",
@@ -185,7 +185,7 @@ class HermesChecklistManager:
         console.print()
 
     def display_final_summary(self) -> None:
-        """In bảng báo cáo tổng kết chi tiết sau khi toàn bộ quy trình hoàn tất"""
+        """Prints comprehensive summary table after full ingestion process finishes."""
         if not self.plan:
             return
 
@@ -194,15 +194,15 @@ class HermesChecklistManager:
             all_completed.extend(task.completed_tracks)
 
         report_table = Table(
-            title=f"🎉 BÁO CÁO TỔNG KẾT HERMES AGENT ({len(all_completed)}/{self.plan.total_target_count} bài thành công)",
+            title=f"🎉 HERMES AGENT EXECUTION SUMMARY ({len(all_completed)}/{self.plan.total_target_count} tracks succeeded)",
             title_style="bold green",
             expand=True
         )
         report_table.add_column("#", style="dim", width=4)
-        report_table.add_column("Bài hát", style="white")
-        report_table.add_column("Nghệ sĩ (Primary / Feat)", style="cyan")
+        report_table.add_column("Track", style="white")
+        report_table.add_column("Artists (Primary / Feat)", style="cyan")
         report_table.add_column("Album", style="magenta")
-        report_table.add_column("Thông số Âm học (BPM / Camelot / LUFS)", style="yellow")
+        report_table.add_column("Acoustics (BPM / Camelot / LUFS)", style="yellow")
         report_table.add_column("Catalog ID", style="dim", width=10)
         report_table.add_column("S3 Audio URL", style="blue")
 
@@ -231,9 +231,9 @@ class HermesChecklistManager:
         console.print(report_table)
         console.print(
             Panel.fit(
-                f"[bold green]✓ Hoàn thành toàn diện nhiệm vụ Hermes Agent![/bold green]\n"
-                f"• Tổng số bài đã xử lý thành công: [bold cyan]{len(all_completed)}/{self.plan.total_target_count}[/bold cyan]\n"
-                f"• Snapshot kế hoạch đã lưu tại: [dim]{os.path.join(self.storage_dir, f'{self.plan.plan_id}.json')}[/dim]",
+                f"[bold green]✓ Hermes Agent plan execution completed![/bold green]\n"
+                f"• Total tracks ingested successfully: [bold cyan]{len(all_completed)}/{self.plan.total_target_count}[/bold cyan]\n"
+                f"• Plan snapshot persisted at: [dim]{os.path.join(self.storage_dir, f'{self.plan.plan_id}.json')}[/dim]",
                 border_style="green"
             )
         )

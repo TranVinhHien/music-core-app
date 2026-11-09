@@ -1,2 +1,6 @@
-using nestJs, PostgreSQL
-Quản lý tài khoản, hồ sơ, cài đặt; dữ liệu có cấu trúc và quan hệ rõ ràng.
+# Music User Service
+
+- **Runtime / Framework:** NestJS + PostgreSQL
+- **Primary Responsibilities:**
+  - Manages user accounts, profiles, authentication credentials, and user preferences.
+  - Maintains structured, relational user data.

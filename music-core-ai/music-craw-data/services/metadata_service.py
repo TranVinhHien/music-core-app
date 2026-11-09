@@ -3,8 +3,8 @@ from typing import Optional, Dict, Any, List
 
 class MetadataService:
     """
-    Dịch vụ tìm kiếm metadata chuẩn (Title, Artist, Album, Cover Art, Year, Genre).
-    Kết hợp iTunes API và Deezer API, hỗ trợ lấy toàn bộ tracklist của 1 Album.
+    Standardized metadata resolution service (Title, Artist, Album, Cover Art, Year, Genre).
+    Combines iTunes API and Deezer API, supporting full album tracklist resolution.
     """
 
     @staticmethod
@@ -52,16 +52,16 @@ class MetadataService:
     @classmethod
     def get_album_tracks(cls, album_name: str, artist_name: str = "") -> List[Dict[str, Any]]:
         """
-        Lấy TOÀN BỘ danh sách bài hát trong Album (không giới hạn 5 hay 10 bài).
-        Ưu tiên tra cứu trên iTunes Lookup API, fallback sang Deezer.
+        Retrieves the complete tracklist for an album.
+        Queries iTunes Lookup API first, falling back to Deezer.
         """
         search_query = f"{album_name} {artist_name}".strip()
-        print(f"[MetadataService] Đang tra cứu toàn bộ danh sách bài hát cho Album: '{search_query}'...")
+        print(f"[MetadataService] Querying complete tracklist for Album: '{search_query}'...")
 
         collection_id = None
         album_meta = None
 
-        # 1. Tìm album qua entity=album
+        # 1. Search album via entity=album
         try:
             resp = requests.get(
                 "https://itunes.apple.com/search",
@@ -70,7 +70,7 @@ class MetadataService:
             )
             if resp.status_code == 200:
                 results = resp.json().get("results", [])
-                # Ưu tiên album có nhiều bài nhất nếu tìm thấy nhiều kết quả trùng tên
+                # Prioritize album with most tracks if multiple matches exist
                 for r in results:
                     if r.get("trackCount", 0) > 1 or not collection_id:
                         collection_id = r.get("collectionId")
@@ -78,9 +78,9 @@ class MetadataService:
                         if r.get("trackCount", 0) > 1:
                             break
         except Exception as e:
-            print(f"[MetadataService] Lỗi search album iTunes: {e}")
+            print(f"[MetadataService] Error searching iTunes album: {e}")
 
-        # 2. Nếu tìm album chỉ ra bản Single (1 bài) hoặc chưa có, tìm qua entity=song
+        # 2. If single-track result or missing, search via entity=song
         if not collection_id or (album_meta and album_meta.get("trackCount", 0) <= 1):
             try:
                 song_resp = requests.get(
@@ -95,9 +95,9 @@ class MetadataService:
                             collection_id = s.get("collectionId")
                             break
             except Exception as e:
-                print(f"[MetadataService] Lỗi tìm collection qua song iTunes: {e}")
+                print(f"[MetadataService] Error finding collection via iTunes song: {e}")
 
-        # 3. Lấy toàn bộ tracklist qua Lookup API iTunes
+        # 3. Fetch full tracklist via iTunes Lookup API
         if collection_id:
             try:
                 lookup_resp = requests.get(
@@ -112,14 +112,14 @@ class MetadataService:
                         for item in items if item.get("wrapperType") == "track"
                     ]
                     if tracks:
-                        # Sắp xếp theo discNumber và trackNumber
+                        # Sort by discNumber and trackNumber
                         tracks.sort(key=lambda t: (t.get("disc_number", 1), t.get("track_number", 1)))
-                        print(f"[MetadataService] ✓ Tìm thấy {len(tracks)} bài hát trong Album '{album_name}' từ iTunes!")
+                        print(f"[MetadataService] ✓ Found {len(tracks)} tracks in Album '{album_name}' from iTunes!")
                         return tracks
             except Exception as e:
-                print(f"[MetadataService] Lỗi lookup album iTunes: {e}")
+                print(f"[MetadataService] Error in iTunes album lookup: {e}")
 
-        # 4. Fallback sang Deezer nếu iTunes không có
+        # 4. Fallback to Deezer if not found on iTunes
         try:
             dz_album_resp = requests.get(
                 "https://api.deezer.com/search/album",
@@ -143,16 +143,16 @@ class MetadataService:
                             t["album"] = dz_alb
                             tracks.append(cls._format_track(t, source="deezer"))
                         if tracks:
-                            print(f"[MetadataService] ✓ Tìm thấy {len(tracks)} bài hát trong Album '{album_name}' từ Deezer!")
+                            print(f"[MetadataService] ✓ Found {len(tracks)} tracks in Album '{album_name}' from Deezer!")
                             return tracks
         except Exception as e:
-            print(f"[MetadataService] Lỗi search album Deezer: {e}")
+            print(f"[MetadataService] Error searching Deezer album: {e}")
 
         return []
 
     @classmethod
     def search_candidates(cls, query: str, limit: int = 10) -> List[Dict[str, Any]]:
-        """Tìm danh sách bài hát khớp từ khóa"""
+        """Searches track candidates matching the query."""
         results = []
         try:
             resp = requests.get(
@@ -164,7 +164,7 @@ class MetadataService:
                 for item in resp.json().get("results", []):
                     results.append(cls._format_track(item, source="itunes"))
         except Exception as e:
-            print(f"[MetadataService] Lỗi search iTunes: {e}")
+            print(f"[MetadataService] Error searching iTunes: {e}")
 
         if len(results) < limit:
             try:
@@ -177,12 +177,12 @@ class MetadataService:
                     for item in dz_resp.json().get("data", []):
                         results.append(cls._format_track(item, source="deezer"))
             except Exception as e:
-                print(f"[MetadataService] Lỗi search Deezer: {e}")
+                print(f"[MetadataService] Error searching Deezer: {e}")
 
         return results
 
     @classmethod
     def get_metadata(cls, query: str) -> Optional[Dict[str, Any]]:
-        """Lấy 1 bài hát duy nhất khớp nhất"""
+        """Retrieves best matching metadata for a single track."""
         cands = cls.search_candidates(query, limit=1)
         return cands[0] if cands else None

@@ -1,532 +1,524 @@
-# 🎵 Personal Music App — Tổng hợp chức năng
+# 🎵 Personal Music App — Feature Specifications
 
-## 🌟 1. Tổng quan
+## 🌟 1. Overview
 
-Ứng dụng nghe nhạc cá nhân, ưu tiên **nghe nhạc offline** và quản lý thư viện nhạc riêng của người dùng.
+A personal music listening application prioritizing **offline playback** and granular management of the user's private music collection.
 
-Ứng dụng có 4 cấp chức năng:
+The application is structured into 4 capability tiers:
 
-1. 🎵 **Cấp 1 — Cơ bản:** nghe và quản lý nhạc.
-2. 🧠 **Cấp 2 — Cá nhân hóa:** kết nối Internet, tải nhạc và xây dựng thư viện theo sở thích.
-3. 🚀 **Cấp 3 — Nâng cao / Thông minh:** tự động lựa chọn, sắp xếp và chuyển bài để tạo trải nghiệm nghe nhạc liền mạch.
-4. 🤖 **AI Talk — Trợ lý AI:** người dùng nói hoặc chat với AI để thực hiện các chức năng trong ứng dụng.
-
----
-
-# 🎵 2. Cấp 1 — Chức năng cơ bản
-
-## ▶️ 2.1. Trình phát nhạc
-
-Các chức năng cơ bản để nghe nhạc:
-
-- ▶️ Phát / Tạm dừng
-- ⏭️ Bài tiếp theo / Bài trước
-- ⏩ Tua đến vị trí bất kỳ
-- 🔊 Điều chỉnh âm lượng
-- 🔀 Phát ngẫu nhiên
-- 🔁 Lặp lại bài hát / danh sách
-
-## 📋 2.2. Danh sách chờ
-
-Quản lý các bài hát sẽ phát tiếp theo:
-
-- 👀 Xem danh sách chờ
-- ➕ Thêm bài vào hàng đợi
-- ⏭️ Phát bài tiếp theo
-- ❌ Xóa bài khỏi hàng đợi
-- ↕️ Thay đổi thứ tự bài hát
-
-## 📚 2.3. Thư viện nhạc
-
-Tổ chức toàn bộ nhạc trên thiết bị:
-
-- 🎵 Bài hát
-- 🎤 Nghệ sĩ
-- 💿 Album
-- 🎸 Thể loại
-- ❤️ Bài hát yêu thích
-
-## 🎼 2.4. Playlist
-
-Người dùng có thể tự tạo danh sách nhạc:
-
-- ➕ Tạo playlist
-- ✏️ Đổi tên playlist
-- ➕ Thêm bài hát
-- ❌ Xóa bài hát
-- 🗑️ Xóa playlist
-- ▶️ Phát toàn bộ playlist
-
-## 🔍 2.5. Tìm kiếm
-
-Tìm kiếm nhanh trong thư viện theo:
-
-- 🎵 Tên bài hát
-- 🎤 Nghệ sĩ
-- 💿 Album
-- 🎸 Thể loại
-
-## ❤️ 2.6. Yêu thích
-
-Đánh dấu bài hát yêu thích để dễ dàng tìm và nghe lại.
-
-## 🕘 2.7. Lịch sử nghe
-
-Lưu lại các bài đã nghe:
-
-- 🕘 Bài nghe gần đây
-- 🔢 Số lần phát
-- 📅 Thời điểm nghe gần nhất
-
-## 📥 2.8. Nghe offline
-
-Sau khi nhạc đã có trên thiết bị, người dùng có thể nghe mà không cần Internet.
-
-## 💾 2.9. Quản lý bộ nhớ
-
-Quản lý dung lượng nhạc:
-
-- 📊 Dung lượng thư viện
-- 📦 Dung lượng từng bài / album
-- 🗑️ Xóa bài đã tải
-- 🧹 Xóa dữ liệu không cần thiết
+1. 🎵 **Level 1 — Core:** Music playback and local library management.
+2. 🧠 **Level 2 — Personalization:** Cloud connectivity, music ingestion/download, and taste-driven library curation.
+3. 🚀 **Level 3 — Advanced / Intelligent:** Automated curation, intelligent sequencing, and acoustic transitions for a continuous, seamless listening experience.
+4. 🤖 **AI Talk — AI Assistant:** Conversational voice/chat interface allowing users to control and trigger in-app capabilities using natural language.
 
 ---
 
-# 🧠 3. Cấp 2 — Cá nhân hóa
+# 🎵 2. Level 1 — Core Features
 
-## 🌐 3.1. Tìm kiếm nhạc trên Internet
+## ▶️ 2.1. Audio Player
 
-Kết nối với nguồn nhạc bên ngoài để tìm kiếm các bài hát chưa có trong thư viện.
+Core playback controls:
 
-Ví dụ:
+- ▶️ Play / Pause
+- ⏭️ Next / Previous Track
+- ⏩ Seek to arbitrary timestamp
+- 🔊 Volume adjustment
+- 🔀 Shuffle mode
+- 🔁 Repeat track / Repeat playlist
 
-- 🔍 Tìm bài hát
-- 🎤 Tìm nghệ sĩ
-- 💿 Tìm album
-- ▶️ Xem kết quả từ YouTube
+## 📋 2.2. Playback Queue
 
-## 📥 3.2. Tải nhạc
+Queue management for upcoming tracks:
 
-Tải bài hát về thiết bị để nghe offline.
+- 👀 View playback queue
+- ➕ Enqueue track (Play next / Add to queue)
+- ⏭️ Play next immediately
+- ❌ Remove track from queue
+- ↕️ Reorder queue items
 
-```text
-🔍 Tìm kiếm
-    ↓
-🎵 Chọn bài hát
-    ↓
-📥 Tải xuống
-    ↓
-💾 Lưu vào thiết bị
-    ↓
-📚 Thêm vào thư viện
-```
+## 📚 2.3. Music Library
 
-> ⚠️ Việc tải nội dung từ nguồn bên ngoài cần tuân thủ quyền sử dụng và điều khoản của nguồn đó.
+Local on-device audio organization:
 
-## 📚 3.3. Tự động thêm vào thư viện
+- 🎵 Tracks
+- 🎤 Artists
+- 💿 Albums
+- 🎸 Genres
+- ❤️ Favorite Tracks
 
-Sau khi tải một bài hát, ứng dụng tự động đưa bài hát vào thư viện.
+## 🎼 2.4. Playlists
 
-Người dùng không cần tự tạo folder hoặc nhập lại thông tin.
+Custom user-defined playlists:
 
-## 🏷️ 3.4. Tự động nhận diện thông tin bài hát
+- ➕ Create playlist
+- ✏️ Rename playlist
+- ➕ Add tracks to playlist
+- ❌ Remove tracks from playlist
+- 🗑️ Delete playlist
+- ▶️ Play entire playlist
 
-Sau khi tải, ứng dụng cố gắng xác định:
+## 🔍 2.5. Local Search
 
-- 🎵 Tên bài hát
-- 🎤 Nghệ sĩ
-- 💿 Album
-- 🎸 Thể loại
-- 📅 Năm phát hành
-- 🖼️ Ảnh album
+Fast in-library search across:
 
-Mục đích là tự động tổ chức thư viện.
+- 🎵 Track title
+- 🎤 Artist name
+- 💿 Album title
+- 🎸 Genre name
 
-## 📌 3.5. Tự động thêm vào Playlist
+## ❤️ 2.6. Favorites
 
-Người dùng có thể chọn playlist mặc định.
+Mark tracks as favorites for quick access and replay.
 
-Ví dụ:
+## 🕘 2.7. Listening History
 
-```text
-📥 Bài mới tải
-      ↓
-📌 Tự động thêm vào
-"My Music"
-```
+Track playback logging:
 
-Nếu không chọn playlist cố định, bài hát vẫn được lưu trong thư viện.
+- 🕘 Recently played tracks
+- 🔢 Play count tracking
+- 📅 Last played timestamp
 
-## 🧩 3.6. Playlist thông minh
+## 📥 2.8. Offline Playback
 
-Playlist tự động cập nhật dựa trên điều kiện.
+Once stored on the device, music plays reliably without an active internet connection.
 
-Ví dụ:
+## 💾 2.9. Storage Management
 
-- ❤️ Nhạc yêu thích
-- 🆕 Nhạc mới tải
-- 🔥 Nhạc nghe nhiều
-- ❓ Nhạc chưa nghe
-- 🕘 Nhạc nghe gần đây
+Device storage optimization:
 
-## 😊 3.7. Phân loại theo tâm trạng
-
-Gắn nhãn tâm trạng cho bài hát:
-
-- 😊 Vui
-- 😢 Buồn
-- 😌 Thư giãn
-- 🧠 Tập trung
-- 🔥 Năng lượng
-- ❤️ Lãng mạn
-- 🌙 Ban đêm
-
-Một bài hát có thể thuộc nhiều tâm trạng.
-
-## 🎭 3.8. Chế độ nghe theo tâm trạng
-
-Người dùng chọn tâm trạng hiện tại:
-
-```text
-😊 Vui
-😢 Buồn
-😌 Thư giãn
-🧠 Tập trung
-🔥 Năng lượng
-🌙 Ban đêm
-```
-
-Ứng dụng chọn các bài phù hợp từ thư viện.
-
-## 🎯 3.9. Gợi ý bài hát
-
-Dựa trên hành vi nghe nhạc để gợi ý:
-
-- 🔥 Bài thường nghe
-- 🎤 Nghệ sĩ yêu thích
-- 🎸 Thể loại yêu thích
-- 🎵 Bài tương tự
-- 📥 Bài đã tải nhưng chưa nghe
-- 🔄 Bài lâu rồi chưa nghe
-
-## 🧠 3.10. Hồ sơ sở thích âm nhạc
-
-Ứng dụng dần hiểu gu nghe nhạc dựa trên:
-
-- ▶️ Bài thường nghe
-- ⏭️ Bài bỏ qua
-- 🔁 Bài nghe lại nhiều lần
-- ❤️ Bài yêu thích
-- 📋 Playlist
-- 🎸 Thể loại
-- 🎤 Nghệ sĩ
-- 😊 Tâm trạng thường chọn
-
-## 📊 3.11. Thống kê nghe nhạc
-
-Cung cấp:
-
-- ⏱️ Tổng thời gian nghe
-- 🎵 Số bài đã nghe
-- 🎤 Nghệ sĩ nghe nhiều nhất
-- 🎸 Thể loại nghe nhiều nhất
-- 🔥 Bài hát nghe nhiều nhất
-- 📅 Lịch sử nghe theo ngày / tuần / tháng
+- 📊 Total library size metrics
+- 📦 Track / album disk usage breakdown
+- 🗑️ Delete downloaded tracks
+- 🧹 Clear temporary cache and data
 
 ---
 
-# 🚀 4. Cấp 3 — Chức năng nâng cao / Thông minh
+# 🧠 3. Level 2 — Personalization
 
-Cấp 3 tập trung vào việc để ứng dụng **tự hiểu bài hát và tự tạo trải nghiệm nghe**.
+## 🌐 3.1. Internet Music Search
 
-## 🎚️ 4.1. Phát nhạc liền mạch
+Connect to external music sources to discover tracks not yet in the local library.
 
-Chuyển từ bài này sang bài khác mà không tạo khoảng im lặng khó chịu.
+Features include:
 
-**Ý nghĩa:** tạo cảm giác một phiên nghe liên tục.
+- 🔍 Search tracks
+- 🎤 Search artists
+- 💿 Search albums
+- ▶️ Stream preview results from sources like YouTube
 
-## 🔄 4.2. Chuyển bài mượt
+## 📥 3.2. Music Ingestion & Download
 
-Hai bài được chuyển tiếp với nhau thay vì kết thúc đột ngột rồi bắt đầu bài mới.
-
-**Ý nghĩa:** giống cách DJ chuyển giữa các bài.
-
-## 🥁 4.3. Phân tích nhịp điệu
-
-Phân tích BPM, nhịp và tiết tấu của bài hát.
-
-**Ý nghĩa:** giúp tìm các bài có tốc độ phù hợp để chuyển tiếp.
-
-## 🎼 4.4. Phân tích tông nhạc
-
-Nhận diện tông của bài hát.
-
-**Ý nghĩa:** ưu tiên các bài có tông phù hợp để việc chuyển bài nghe tự nhiên hơn.
-
-## 🔥 4.5. Phân tích năng lượng
-
-Đánh giá mức năng lượng của bài hát.
+Download tracks to the local device for offline playback.
 
 ```text
-😴 Thấp → 🙂 Trung bình → 🔥 Cao
+🔍 Search
+    ↓
+🎵 Select Track
+    ↓
+📥 Download
+    ↓
+💾 Persist to Storage
+    ↓
+📚 Ingest into Library
 ```
 
-**Ý nghĩa:** tránh chuyển đột ngột giữa hai bài có mức năng lượng quá khác nhau.
+> ⚠️ Content downloading must adhere to source platform terms of service and licensing agreements.
 
-## 🎧 4.6. Chuyển bài thông minh
+## 📚 3.3. Automatic Library Ingestion
 
-Ứng dụng tự xác định:
+Downloaded tracks are automatically categorized and registered into the library without requiring manual folder management or manual tag entry.
 
-- ⏱️ Khi nào nên chuyển bài
-- 🎯 Chuyển tại đoạn nào
-- ▶️ Bài tiếp theo nên bắt đầu ở đâu
+## 🏷️ 3.4. Automatic Metadata Tagging
 
-**Ý nghĩa:** không nhất thiết phải chờ bài A kết thúc hoàn toàn rồi mới phát bài B.
+Upon download, the system resolves and writes:
 
-## 🎼 4.7. Chuyển bài theo giai điệu
+- 🎵 Track title
+- 🎤 Artist name
+- 💿 Album name
+- 🎸 Genre
+- 📅 Release year
+- 🖼️ HD Cover Art
 
-Phân tích giai điệu / nốt / đoạn nhạc ở cuối bài hiện tại và tìm đoạn phù hợp trong bài tiếp theo.
+Ensures the library remains structured and consistent automatically.
+
+## 📌 3.5. Automated Playlist Routing
+
+Users can define default destination playlists for newly ingested music.
+
+For example:
 
 ```text
-🎵 Bài A
-   Cuối bài: 🎼 Giai điệu X
+📥 Newly Downloaded Track
+          ↓
+📌 Automatically Enqueued into
+     "My Music"
+```
+
+If no target playlist is specified, tracks are still safely cataloged in the master library.
+
+## 🧩 3.6. Smart Playlists
+
+Dynamic playlists that automatically update based on rules and criteria:
+
+- ❤️ Favorite Songs
+- 🆕 Recently Downloaded
+- 🔥 Most Played
+- ❓ Unheard Tracks
+- 🕘 Recently Played
+
+## 😊 3.7. Mood Tagging
+
+Tag tracks with emotional and situational moods:
+
+- 😊 Happy / Uplifting
+- 😢 Melancholy / Sad
+- 😌 Chill / Relaxing
+- 🧠 Focus / Deep Work
+- 🔥 High Energy / Workout
+- ❤️ Romantic
+- 🌙 Late Night / Ambient
+
+A track may belong to multiple mood tags simultaneously.
+
+## 🎭 3.8. Mood Playback Modes
+
+Users select their current state of mind:
+
+```text
+😊 Happy
+😢 Melancholy
+😌 Chill
+🧠 Focus
+🔥 High Energy
+🌙 Late Night
+```
+
+The app curates matching tracks from the local library.
+
+## 🎯 3.9. Track Recommendations
+
+Listening behavior patterns drive smart recommendations:
+
+- 🔥 Frequently played tracks
+- 🎤 Top artists
+- 🎸 Favorite genres
+- 🎵 Sonically similar tracks
+- 📥 Downloaded but unheard tracks
+- 🔄 Rediscoveries (tracks not listened to in a while)
+
+## 🧠 3.10. User Taste Profile
+
+The system progressively learns musical preferences by tracking:
+
+- ▶️ Completed plays
+- ⏭️ Skipped tracks
+- 🔁 Repeat loops
+- ❤️ Favorited tracks
+- 📋 Playlist curation choices
+- 🎸 Genre distribution
+- 🎤 Artist affinity
+- 😊 Preferred moods
+
+## 📊 3.11. Listening Analytics
+
+Comprehensive listening insights:
+
+- ⏱️ Total listening duration
+- 🎵 Total tracks played
+- 🎤 Top artists
+- 🎸 Top genres
+- 🔥 Most played songs
+- 📅 Daily / Weekly / Monthly listening history
+
+---
+
+# 🚀 4. Level 3 — Advanced / Intelligent Audio Features
+
+Level 3 focuses on enabling the app to **acoustically understand music and craft seamless listening sessions autonomously**.
+
+## 🎚️ 4.1. Gapless Playback
+
+Transitions between consecutive songs without disruptive silence or audio stutter.
+
+**Benefit:** Creates a unified, uninterrupted listening session.
+
+## 🔄 4.2. Smooth Crossfading
+
+Overlaps the outgoing and incoming tracks dynamically rather than abruptly cutting off audio.
+
+**Benefit:** Emulates professional DJ transitions between songs.
+
+## 🥁 4.3. Rhythm & Beat Matching
+
+Extracts BPM, tempo variations, and downbeat timestamps.
+
+**Benefit:** Aligns incoming and outgoing beats for tempo-synchronized transitions.
+
+## 🎼 4.4. Harmonic Key Analysis
+
+Detects musical key and scale, mapping to the Camelot Wheel.
+
+**Benefit:** Prioritizes harmonic compatibility so that mixed tracks blend without tonal clash.
+
+## 🔥 4.5. Energy Dynamics Analysis
+
+Evaluates acoustic energy levels across tracks:
+
+```text
+😴 Low Energy → 🙂 Medium Energy → 🔥 High Energy
+```
+
+**Benefit:** Avoids jarring leaps in perceived intensity between consecutive songs.
+
+## 🎧 4.6. Intelligent Cue Transitioning
+
+Determines optimal mixing points automatically:
+
+- ⏱️ Transition cue timestamps
+- 🎯 Outgoing fade point (`cue_out`)
+- ▶️ Incoming entry point (`cue_in`)
+
+**Benefit:** Eliminates the need to wait through extended outros or intros.
+
+## 🎼 4.7. Melodic Transition Matching
+
+Analyzes harmonic motifs and melodic phrases at the outro of track A to match compatible phrases in track B.
+
+```text
+🎵 Track A
+   Outro: 🎼 Melody X
              ↓
-          🔍 Tìm kiếm
+          🔍 Match
              ↓
-🎵 Bài B
-   Đoạn phù hợp với X
+🎵 Track B
+   Phrase compatible with X
 ```
 
-**Ý nghĩa:** tạo cảm giác hai bài thực sự nối tiếp nhau về mặt âm nhạc.
+**Benefit:** Creates musically cohesive segues between different tracks.
 
-## 📈 4.8. Điều chỉnh mạch năng lượng
+## 📈 4.8. Energy Arc Structuring
 
-Sắp xếp bài hát theo một đường năng lượng hợp lý:
+Sequences tracks along a coherent energy curve:
 
 ```text
-🌱 Khởi động
+🌱 Warm-up
       ↓
-📈 Tăng dần
+📈 Build-up
       ↓
-🔥 Cao trào
+🔥 Peak / Climax
       ↓
-📉 Giảm dần
+📉 Cool-down
       ↓
-😌 Thư giãn
+😌 Chill / Outro
 ```
 
-**Ý nghĩa:** tạo một trải nghiệm nghe có diễn biến thay vì danh sách bài ngẫu nhiên.
+**Benefit:** Transforms random song shuffling into an intentional musical narrative.
 
-## 🎛️ 4.9. Tự động tạo phiên nghe
+## 🎛️ 4.9. Automated Session Generation
 
-Tự chọn và sắp xếp một nhóm bài phù hợp với mục đích nghe.
+Builds goal-oriented listening sessions:
 
-Ví dụ:
+Examples:
 
-- 🧘 30 phút thư giãn
-- 🏋️ 60 phút tập gym
-- 💻 2 giờ làm việc
-- 🌙 Một đêm nghe nhạc
+- 🧘 30-Minute Relaxation Session
+- 🏋️ 60-Minute High-Intensity Workout
+- 💻 2-Hour Deep Focus Flow
+- 🌙 Late Night Ambient Journey
 
-**Ý nghĩa:** người dùng chỉ cần chọn mục đích, ứng dụng tự tạo danh sách.
+**Benefit:** Users choose an objective and duration; the app handles track selection and sequencing.
 
-## 🤖 4.10. DJ tự động
+## 🤖 4.10. Auto DJ
 
-Kết hợp các chức năng thông minh:
+Fuses acoustic intelligence with user personalization:
 
 ```text
-🧠 Gu nghe nhạc
+🧠 Taste Profile
        +
-😊 Tâm trạng
+😊 Current Mood
        +
-🎯 Mục đích
+🎯 Target Goal
        +
-🥁 BPM
+🥁 BPM Matching
        +
-🎼 Tông nhạc
+🎼 Harmonic Key
        +
-🔥 Năng lượng
+🔥 Energy Flow
        ↓
     🤖 Auto DJ
        ↓
-🎵 Chọn bài
+🎵 Track Selection
        ↓
-📋 Sắp xếp bài
+📋 Playlist Sequencing
        ↓
-🎧 Chuyển bài mượt
+🎧 Smart Crossfade Transitions
 ```
 
-**Ý nghĩa:** ứng dụng hoạt động giống một DJ cá nhân, tự tạo và duy trì một phiên nghe nhạc.
+**Benefit:** Operates as a personalized DJ that builds and sustains a live listening session.
 
-## 🧠 4.11. DJ cá nhân hóa
+## 🧠 4.11. Adaptive DJ Personalization
 
-Auto DJ sử dụng chính dữ liệu của người dùng để tạo trải nghiệm riêng.
+The Auto DJ engine refines its choices over time using individual telemetry:
 
-Ứng dụng học:
+- ❤️ Favorite artists and tracks
+- 🎸 Preferred genres
+- ⏭️ Skip behaviors
+- 🕘 Time-of-day habits
+- 🔥 Preferred energy levels
+- 😊 Frequently selected moods
 
-- ❤️ Nghệ sĩ yêu thích
-- 🎸 Thể loại yêu thích
-- ⏭️ Bài thường bỏ qua
-- 🕘 Thời điểm thường nghe
-- 🔥 Mức năng lượng yêu thích
-- 😊 Tâm trạng thường chọn
+**Benefit:** The longer the app is used, the more accurate and tailored the sessions become.
 
-**Ý nghĩa:** càng sử dụng lâu, phiên nghe càng phù hợp với cá nhân người dùng.
+## ⏰ 4.12. Contextual & Time-of-Day Suggestions
 
-## ⏰ 4.12. Gợi ý theo thời điểm và hoạt động
-
-Ứng dụng học mối quan hệ giữa thời gian, hoạt động và âm nhạc.
-
-Ví dụ:
+Learns correlations between time, routine, and music preferences:
 
 ```text
-🌅 08:00 → 🧠 Tập trung
-🌆 18:00 → 🔥 Năng lượng
-🌙 22:00 → 😌 Thư giãn
+🌅 08:00 → 🧠 Morning Focus / Commute
+🌆 18:00 → 🔥 Workout / High Energy
+🌙 22:00 → 😌 Wind Down / Sleep
 ```
 
-**Ý nghĩa:** ứng dụng chủ động đưa ra lựa chọn phù hợp với hoàn cảnh hiện tại.
+**Benefit:** Proactively recommends music aligned with the user's real-time environment.
 
 ---
 
-# 🤖 5. AI Talk — Trợ lý AI cá nhân
+# 🤖 5. AI Talk — Personal Conversational Assistant
 
-## 💬 5.1. Tổng quan
+## 💬 5.1. Overview
 
-AI Talk là một **trợ lý AI bên trong ứng dụng**, cho phép người dùng nói chuyện hoặc nhập yêu cầu bằng ngôn ngữ tự nhiên.
+AI Talk is an **embedded conversational assistant**, allowing users to speak or chat in natural language.
 
-AI không chỉ trả lời câu hỏi mà có thể **thực hiện các chức năng có sẵn trong ứng dụng thay cho người dùng**.
+Beyond answering queries, AI Talk is designed to **execute concrete in-app features on behalf of the user**.
 
 ```text
-👤 Người dùng
+👤 User
       ↓
 💬 AI Talk
       ↓
-🧠 Hiểu yêu cầu
+🧠 Intent Parsing & Tool Routing
       ↓
-🛠️ Thực hiện chức năng trong App
+🛠️ In-App Capability Execution
       ↓
-🎵 Trả kết quả / Thay đổi App
+🎵 State Mutation / Playback / UI Update
 ```
 
-## 🎯 5.2. Điều khiển trình phát nhạc
+## 🎯 5.2. Playback Control
 
-Người dùng có thể yêu cầu AI:
+Users can instruct the AI to control playback:
 
-- ▶️ Phát nhạc
-- ⏸️ Tạm dừng
-- ⏭️ Chuyển bài
-- 🔁 Bật lặp
-- 🔀 Bật shuffle
-- 🎚️ Điều chỉnh cách phát
+- ▶️ Play / Resume
+- ⏸️ Pause
+- ⏭️ Skip track
+- 🔁 Toggle repeat
+- 🔀 Toggle shuffle
+- 🎚️ Transition control
 
-Ví dụ:
+Examples:
 
-> "Phát bài tiếp theo."
+> "Play the next song."
 
-> "Cho bài này lặp lại."
+> "Put this song on repeat."
 
-## 🔍 5.3. Tìm kiếm nhạc
+## 🔍 5.3. Music Discovery
 
-AI có thể thực hiện tìm kiếm thay cho người dùng.
+AI conducts music searches based on user prompts.
 
-Ví dụ:
+Examples:
 
-> "Tìm cho tôi nhạc của Bruno Mars."
+> "Find songs by Bruno Mars."
 
-> "Tìm những bài giống bài này."
+> "Find tracks similar to the one currently playing."
 
-## 📥 5.4. Tải nhạc
+## 📥 5.4. Music Ingestion
 
-AI có thể thực hiện quy trình tải nhạc trong phạm vi chức năng ứng dụng hỗ trợ.
+AI triggers download workflows within the boundaries of supported features.
 
-Ví dụ:
+Examples:
 
-> "Tải bài này về."
+> "Download this song for offline listening."
 
-> "Tải 5 bài này vào thư viện."
+> "Download these 5 tracks into my library."
 
-## 📚 5.5. Quản lý thư viện
+## 📚 5.5. Library & Playlist Management
 
-AI có thể:
+AI executes library actions:
 
-- ➕ Thêm bài vào playlist
-- ❌ Xóa bài khỏi playlist
-- ❤️ Thêm / bỏ yêu thích
-- 📌 Đưa bài vào playlist mặc định
-- 🗂️ Tổ chức thư viện
-- 🔍 Tìm bài trong thư viện
+- ➕ Add track to playlist
+- ❌ Remove track from playlist
+- ❤️ Favorite / Unfavorite track
+- 📌 Route to default playlist
+- 🗂️ Organize library collections
+- 🔍 Query local library items
 
-Ví dụ:
+Examples:
 
-> "Thêm bài này vào playlist Workout."
+> "Add this track to my Workout playlist."
 
-> "Tìm tất cả bài của Taylor Swift."
+> "Find all songs by Taylor Swift in my library."
 
-## 😊 5.6. Tạo nhạc theo tâm trạng
+## 😊 5.6. Mood-Based Playback
 
-Người dùng không cần tự chọn filter.
+Eliminates manual filter navigation:
 
-Ví dụ:
+Example:
 
-> "Tôi đang muốn thư giãn."
+> "I need something relaxing right now."
 
-AI có thể:
+Execution flow:
 
 ```text
-😊 Hiểu mood
-      ↓
-🧠 Phân tích thư viện
-      ↓
-🎵 Chọn bài phù hợp
-      ↓
-📋 Tạo / cập nhật queue
-      ↓
-▶️ Bắt đầu phát
+😊 Parse Mood Intent
+          ↓
+🧠 Query & Filter Library
+          ↓
+🎵 Select Matching Tracks
+          ↓
+📋 Populate Playback Queue
+          ↓
+▶️ Initiate Playback
 ```
 
-## 🎯 5.7. Tạo phiên nghe
+## 🎯 5.7. Session Generation
 
-Người dùng có thể yêu cầu:
+Users specify custom listening targets:
 
-> "Cho tôi một playlist 1 tiếng để tập trung."
+> "Give me a 1-hour playlist for deep focus."
 
-> "Tạo cho tôi nhạc tập gym."
+> "Create an energetic gym mix."
 
-> "Cho tôi nghe nhạc nhẹ trước khi ngủ."
+> "Play gentle acoustic tracks before sleep."
 
-AI sử dụng các chức năng Recommendation + Mood + Context + Auto DJ để thực hiện.
+The AI combines Recommendation + Mood + Context + Auto DJ to generate the session.
 
-## 🧠 5.8. Hỏi về thư viện nhạc cá nhân
+## 🧠 5.8. Library Insights & Analytics
 
-AI có thể trả lời dựa trên dữ liệu trong app.
+AI answers queries about the user's listening data:
 
-Ví dụ:
+Examples:
 
-> "Tôi có bao nhiêu bài Pop?"
+> "How many Pop tracks do I have in my library?"
 
-> "Tháng này tôi nghe nghệ sĩ nào nhiều nhất?"
+> "Which artist did I listen to most this month?"
 
-> "Bài nào tôi nghe nhiều nhất?"
+> "What is my most played song?"
 
-> "Tìm những bài tôi tải nhưng chưa nghe."
+> "Show me tracks I downloaded but haven't listened to yet."
 
-## 🎛️ 5.9. Điều khiển chức năng nâng cao
+## 🎛️ 5.9. Advanced Audio & DJ Control
 
-AI có thể kích hoạt các tính năng nâng cao khi người dùng yêu cầu.
+AI activates Level 3 capabilities on demand:
 
-Ví dụ:
+Examples:
 
-> "Tạo một phiên nhạc chuyển bài thật mượt."
+> "Create a seamless crossfade session."
 
-> "Cho tôi một session nhạc có năng lượng tăng dần."
+> "Build a session with a progressive energy curve."
 
-> "Tạo một Auto DJ cho 2 tiếng."
+> "Start an Auto DJ session for the next 2 hours."
 
-## 🔮 5.10. AI làm người điều phối
+## 🔮 5.10. AI as the Orchestration Layer
 
-AI Talk có thể trở thành lớp điều phối phía trên toàn bộ ứng dụng:
+AI Talk serves as a unified orchestration interface over the entire application:
 
 ```text
                      🤖 AI TALK
@@ -540,82 +532,82 @@ AI Talk có thể trở thành lớp điều phối phía trên toàn bộ ứng
        😊 Mood        🎧 Auto DJ     🎼 Transition
 ```
 
-**Ý nghĩa:** người dùng không cần nhớ vị trí từng chức năng trong ứng dụng. Chỉ cần nói điều mình muốn, AI sẽ tìm và thực hiện bằng các chức năng có sẵn.
+**Benefit:** Eliminates interface friction. Users describe what they want, and the AI routes the command to the appropriate underlying capability.
 
-### ⚠️ Nguyên tắc của AI Talk
+### ⚠️ Design Principles for AI Talk
 
-AI Talk **không phải một AI tự do muốn làm gì cũng được**.
+AI Talk is **a constrained, deterministic tool operator, not an unconstrained agent**.
 
-AI chỉ được phép thực hiện các **thao tác mà ứng dụng cung cấp**.
+AI is strictly limited to invoking **documented, deterministic application endpoints and actions**.
 
-Ví dụ:
+Example:
 
 ```text
-👤 "Phát nhạc thư giãn"
-       ↓
+👤 "Play something relaxing"
+        ↓
 🤖 AI
-       ↓
-🎯 Gọi chức năng tạo Mood Session
-       ↓
-🎵 Queue được cập nhật
-       ↓
-▶️ Bắt đầu phát
+        ↓
+🎯 Invoke CreateMoodSession(mood="chill")
+        ↓
+🎵 Queue populated
+        ↓
+▶️ Playback starts
 ```
 
-Điều này giúp AI dễ kiểm soát, dễ phát triển và an toàn hơn.
+This ensures predictable, testable, and secure behavior.
 
 ---
 
-# 🏗️ 6. Tổng quan sản phẩm
+# 🏗️ 6. Product Summary & Architecture
 
 ```text
                     🎵 PERSONAL MUSIC APP
                              │
        ┌─────────────────────┼─────────────────────┐
        │                     │                     │
-       🎵 CẤP 1             🧠 CẤP 2             🚀 CẤP 3
-       CƠ BẢN             CÁ NHÂN HÓA          THÔNG MINH
+       🎵 LEVEL 1           🧠 LEVEL 2           🚀 LEVEL 3
+       CORE               PERSONALIZED         INTELLIGENT
        │                     │                     │
-       ▶️ Player             🌐 Search             🎚️ Seamless
-       📚 Library            📥 Download           🔄 Transition
-       📋 Playlist           🏷️ Metadata           🥁 BPM
-       🔀 Queue              😊 Mood               🎼 Key
-       ❤️ Favorite           🎯 Recommendation     🔥 Energy
-       📥 Offline            🧩 Smart Playlist     🎵 Melody
-       📊 History            🧠 User Profile       🤖 Auto DJ
-       💾 Storage             📈 Statistics          🎯 Context
+       ▶️ Player             🌐 Search             🎚️ Gapless
+       📚 Library            📥 Download           🔄 Crossfade
+       📋 Playlist           🏷️ Metadata           🥁 BPM Matching
+       🔀 Queue              😊 Mood               🎼 Harmonic Key
+       ❤️ Favorites          🎯 Recommendations    🔥 Energy Curves
+       📥 Offline            🧩 Smart Playlists    🎵 Melody Matching
+       📊 History            🧠 Taste Profile      🤖 Auto DJ
+       💾 Storage             📈 Analytics          🎯 Contextual
        │                     │                     │
        └─────────────────────┼─────────────────────┘
                              │
                              ↓
                        🤖 AI TALK
                              │
-              "Tôi muốn nghe nhạc thư giãn"
+              "I want to listen to relaxing music"
                              │
                              ↓
-                     🧠 AI hiểu yêu cầu
+                     🧠 Natural Language Parsing
                              │
                              ↓
-                🛠️ Gọi chức năng trong App
+                🛠️ Invoke In-App Functionality
                              │
                              ↓
-                       🎧 Kết quả
+                       🎧 Output / Result
 ```
 
-## 🎯 Định hướng chính
+## 🎯 Tier Summary
 
-### 🎵 Cấp 1 — Tôi có thể nghe nhạc.
+### 🎵 Level 1 — "I can play my music."
 
-Ứng dụng thay thế một music player thông thường và quản lý thư viện nhạc offline.
+Replaces standard offline players with a reliable, local music player and library.
 
-### 🧠 Cấp 2 — Ứng dụng hiểu gu nghe nhạc của tôi.
+### 🧠 Level 2 — "The app understands my music taste."
 
-Ứng dụng biết tôi nghe gì, thích gì, tải gì và có thể đề xuất nhạc phù hợp.
+Learns listening habits, tracks favorites, downloads music, and offers tailored recommendations.
 
-### 🚀 Cấp 3 — Ứng dụng tự tạo trải nghiệm nghe nhạc.
+### 🚀 Level 3 — "The app creates my listening experience."
 
-Ứng dụng tự chọn bài, sắp xếp bài và chuyển bài dựa trên đặc điểm âm nhạc.
+Analyzes tempo, key, energy, and transitions tracks intelligently for continuous, DJ-quality playback.
 
-### 🤖 AI Talk — Tôi chỉ cần nói điều mình muốn.
+### 🤖 AI Talk — "I just say what I want."
 
-AI trở thành **lớp giao tiếp tự nhiên** giúp người dùng điều khiển và sử dụng toàn bộ các chức năng của ứng dụng mà không cần thao tác thủ công.
+A **natural language voice & chat interface** that coordinates all app capabilities without requiring manual navigation.

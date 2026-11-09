@@ -9,9 +9,9 @@ console = Console()
 
 class InteractiveMusicAgent:
     """
-    Tương thích ngược với interface cũ:
-    Chuyển tiếp mọi yêu cầu sang kiến trúc HermesMusicAgent với khả năng lập Checklist,
-    chia nhỏ tác vụ và chạy bền bỉ đến khi hoàn tất 100% mục tiêu.
+    Backward-compatible wrapper for legacy interface:
+    Delegates all requests to the HermesMusicAgent architecture with Checklist planning,
+    task decomposition, and persistent execution until 100% quota is reached.
     """
 
     def __init__(self, config_path: str = "config.yaml"):
@@ -19,11 +19,11 @@ class InteractiveMusicAgent:
         self.hermes = HermesMusicAgent(config_path=config_path)
 
     def chat(self, user_input: str) -> str:
-        """Thực thi thông qua Hermes Agent Engine và trả về báo cáo kết quả"""
+        """Executes via Hermes Agent Engine and returns summary report."""
         plan = self.hermes.run(user_input)
         return (
-            f"Đã hoàn tất kế hoạch '{plan.goal}'. "
-            f"Tổng số bài hát đã xử lý thành công: {plan.total_crawled_count}/{plan.total_target_count}."
+            f"Completed plan '{plan.goal}'. "
+            f"Total tracks processed successfully: {plan.total_crawled_count}/{plan.total_target_count}."
         )
 
 # Re-export HermesMusicAgent as standard

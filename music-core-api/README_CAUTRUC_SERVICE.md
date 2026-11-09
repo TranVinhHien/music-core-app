@@ -1,125 +1,124 @@
-# Music App — Backend Services
+# Music App — Backend Services Architecture
 
-## 1. Tổng quan
+## 1. Overview
 
-Backend của ứng dụng âm nhạc được chia thành các service theo nghiệp vụ. Mỗi service chịu trách nhiệm rõ ràng cho miền dữ liệu và logic của mình; không tự ý lặp lại nghiệp vụ thuộc service khác.
+The backend architecture is split into domain-driven microservices. Each service maintains a clear responsibility for its own data boundary and business logic; domain duplication across services is prohibited.
 
-| Service | Công nghệ định hướng | Trách nhiệm chính |
+| Service | Target Tech Stack | Primary Responsibilities |
 |---|---|---|
-| `music-api-gateway` | Go | Cổng API cho client; xác thực/ủy quyền ở lớp gateway, định tuyến request, rate limit, request ID và logging kỹ thuật. |
-| `music-user-service` | NestJS | Tài khoản người dùng, hồ sơ, thiết lập và tùy chọn cá nhân. |
-| `music-catalog-service` | NestJS | Metadata bài hát, nghệ sĩ, album, thể loại và thông tin nguồn nhạc. |
-| `music-library-service` | NestJS | Thư viện cá nhân, playlist, yêu thích và dữ liệu thư viện cần đồng bộ giữa thiết bị. |
-| `music-listening-event-service` | Go | Tiếp nhận và lưu sự kiện/hành vi nghe nhạc; hỗ trợ gửi theo batch, retry và chống ghi trùng. |
-| `music-audio-service` | Go | Xử lý tác vụ nền liên quan đến file nhạc: tải từ nguồn được phép, kiểm tra file, trích xuất metadata và phân tích audio khi cần. |
+| `music-api-gateway` | Go | API Gateway for clients; gateway-level auth/RBAC, request routing, rate limiting, request ID propagation, and technical logging. |
+| `music-user-service` | NestJS | User accounts, authentication profiles, settings, and personal preferences. |
+| `music-catalog-service` | NestJS | Metadata for tracks, artists, albums, genres, and audio streaming source references. |
+| `music-library-service` | NestJS | Personal user libraries, playlists, favorites, and multi-device library synchronization. |
+| `music-listening-event-service` | Go | Ingestion and persistence of listening events and user playback interactions; supports batching, retry, and deduplication. |
+| `music-audio-service` | Go | Background audio file processing: downloading from permitted sources, file integrity checks, metadata extraction, and audio analysis. |
 
-> Công nghệ trong bảng là định hướng kiến trúc hiện tại. Không tự đổi ngôn ngữ/framework hoặc tạo service mới nếu chưa được yêu cầu.
+> The technology choices above represent the current architectural direction. Do not change languages/frameworks or introduce new services unless explicitly requested.
 
-## 2. Trách nhiệm chi tiết
+## 2. Detailed Service Boundaries
 
 ### `music-api-gateway` — Go
 
-**Mục đích:** Cung cấp một entry point cho các client.
+**Purpose:** Provide a unified entry point for clients.
 
-- Nhận request từ Flutter và định tuyến đến service tương ứng.
-- Thực hiện các concern ở tầng gateway như xác thực token, rate limiting, request ID, logging và timeout.
-- Có thể tổng hợp response đơn giản nếu cần.
-- Không chứa logic nghiệp vụ sâu của user, catalog, library hay listening events.
-- Không proxy luồng dữ liệu audio lớn nếu client có thể truy cập Object Storage/CDN trực tiếp bằng URL có thời hạn.
+- Receives requests from the Flutter client and routes them to appropriate downstream services.
+- Handles cross-cutting gateway concerns: token authentication, rate limiting, request ID tracking, logging, and timeouts.
+- May aggregate lightweight responses when necessary.
+- Does not contain deep business logic for user, catalog, library, or listening events.
+- Does not proxy heavy audio streaming payloads if clients can stream directly from Object Storage / CDN via presigned URLs.
 
 ### `music-user-service` — NestJS
 
-**Mục đích:** Quản lý danh tính và thông tin cá nhân của người dùng.
+**Purpose:** Manage identity and personal user information.
 
-- Tạo và quản lý hồ sơ người dùng.
-- Quản lý thiết lập và tùy chọn cá nhân.
-- Cung cấp API để các service/client lấy thông tin user cần thiết theo quyền hạn.
-- Là nguồn dữ liệu chính cho thông tin người dùng.
-- Không quản lý playlist, catalog bài hát hoặc lịch sử nghe chi tiết.
+- Creates and manages user accounts and profiles.
+- Manages user settings and preferences.
+- Exposes APIs for other services/clients to fetch necessary user information according to access permissions.
+- Single source of truth for user profile data.
+- Does not manage playlists, music catalog data, or granular playback telemetry.
 
 ### `music-catalog-service` — NestJS
 
-**Mục đích:** Quản lý dữ liệu mô tả nội dung âm nhạc.
+**Purpose:** Manage descriptive music content data.
 
-- Quản lý bài hát, nghệ sĩ, album, thể loại và metadata liên quan.
-- Lưu thông tin nguồn/định danh nội dung và tham chiếu đến vị trí lưu file nếu có.
-- Cung cấp API tìm kiếm và tra cứu catalog ở phạm vi đã triển khai.
-- Phối hợp với `music-audio-service` khi cần xử lý file hoặc cập nhật metadata kỹ thuật.
-- Không sở hữu playlist cá nhân hoặc lịch sử hành vi nghe của user.
+- Manages tracks, artists, albums, genres, and associated metadata.
+- Stores content identifiers, streaming source URLs, and references to audio file storage locations.
+- Exposes search and catalog lookup APIs across implemented scopes.
+- Coordinates with `music-audio-service` when files require processing or technical metadata updates.
+- Does not own personal user playlists or user playback history.
 
 ### `music-library-service` — NestJS
 
-**Mục đích:** Quản lý thư viện âm nhạc riêng của từng người dùng.
+**Purpose:** Manage each user's personal music collection.
 
-- Quản lý playlist và các bài hát trong playlist.
-- Quản lý bài hát yêu thích và các mục được người dùng thêm vào thư viện.
-- Quản lý dữ liệu thư viện cần đồng bộ giữa các thiết bị.
-- Áp dụng quyền sở hữu và quy tắc nghiệp vụ cho dữ liệu cá nhân.
-- Tham chiếu đến bài hát trong catalog thay vì tạo bản sao metadata catalog.
-- Không trực tiếp xử lý file audio hoặc lưu toàn bộ lịch sử sự kiện nghe.
+- Manages playlists and tracks within playlists.
+- Manages favorite tracks and user-saved library items.
+- Manages library states that require cross-device synchronization.
+- Enforces ownership and domain constraints for personal user data.
+- References canonical catalog tracks rather than duplicating catalog metadata.
+- Does not process audio binaries directly or store full telemetry history.
 
 ### `music-listening-event-service` — Go
 
-**Mục đích:** Tiếp nhận và lưu lại hành vi của người dùng trong quá trình sử dụng ứng dụng.
+**Purpose:** Ingest and persist user behavioral events during app usage.
 
-Ví dụ event có thể gồm:
+Sample events include:
 
 - `PLAY_STARTED`, `PLAY_COMPLETED`
 - `PAUSE`, `RESUME`, `SKIP`, `SEEK`, `REPLAY`
-- Các sự kiện nghe nhạc khác được định nghĩa trong event schema.
+- Other playback and discovery events defined in the event schema.
 
-Trách nhiệm:
+Responsibilities:
 
-- Nhận event từ client, hỗ trợ batch upload.
-- Kiểm tra schema cơ bản, thời gian event, user/device context và `event_id`.
-- Lưu event và chống ghi trùng khi client retry.
-- Hỗ trợ đồng bộ offline: client lưu event cục bộ khi mất mạng rồi gửi lên khi kết nối trở lại.
-- Không chạy phân tích audio trong luồng nhận event.
-- Không trực tiếp quyết định recommendation; các tác vụ phân tích/đề xuất có thể tiêu thụ dữ liệu này sau đó.
+- Ingest events from clients with support for batch uploading.
+- Validates basic schema, timestamps, user/device context, and `event_id`.
+- Persists events and enforces idempotency against client retries.
+- Supports offline sync: clients buffer events in a local outbox when offline and sync once reconnected.
+- Does not perform heavy audio analysis within the ingestion path.
+- Does not directly compute recommendations; downstream recommendation workers consume this data asynchronously.
 
 ### `music-audio-service` — Go
 
-**Mục đích:** Xử lý tác vụ nền liên quan đến file âm thanh, tách khỏi request API cần phản hồi nhanh.
+**Purpose:** Handle asynchronous, background audio processing decoupled from latency-sensitive API requests.
 
-- Quản lý hoặc thực thi job tải file từ nguồn mà ứng dụng được phép truy cập và lưu trữ.
-- Kiểm tra tính hợp lệ, định dạng và khả năng đọc của file.
-- Trích xuất metadata kỹ thuật như thời lượng, codec, bitrate.
-- Khi tính năng cần đến, phân tích BPM, key và energy.
-- Chuyển mã audio khi có yêu cầu sản phẩm cụ thể.
-- Cập nhật trạng thái job và metadata xử lý vào nơi lưu dữ liệu phù hợp.
-- File audio nên nằm trong Object Storage/local storage; database lưu metadata, trạng thái và tham chiếu file, không lưu binary audio lớn trực tiếp.
-- Không quản lý playlist, hồ sơ user hoặc lịch sử nghe nhạc.
+- Manages or executes download jobs from permitted external sources.
+- Validates file integrity, container formats, and readability.
+- Extracts technical metadata such as duration, codec, and bitrate.
+- Analyzes BPM, musical key, and energy when feature requirements dictate.
+- Transcodes audio formats when specified by product requirements.
+- Updates job statuses and technical metadata in the appropriate data store.
+- Audio binaries reside in Object Storage / local storage; relational databases store metadata, job states, and file references rather than large binaries.
+- Does not manage user playlists, user profiles, or playback event telemetry.
 
-## 3. Quy ước dữ liệu và tích hợp
+## 3. Data & Integration Conventions
 
-- **PostgreSQL:** dữ liệu nghiệp vụ có cấu trúc như user, catalog, playlist và trạng thái job.
-- **MongoDB:** có thể dùng làm nơi lưu listening events nếu được chọn trong cấu hình triển khai.
-- **Neo4j:** chỉ dùng khi triển khai các truy vấn quan hệ đồ thị cho phân tích/recommendation; chưa mặc định service riêng trong danh sách hiện tại.
-- **Redis:** cache dữ liệu có thể tái tạo; không dùng làm nguồn dữ liệu chính.
-- **Object Storage:** lưu file audio lớn; PostgreSQL giữ metadata và tham chiếu.
-- **Flutter + Drift:** playback, queue và dữ liệu offline cục bộ. Client lưu event vào outbox cục bộ khi offline rồi đồng bộ lên backend.
+- **PostgreSQL:** Structured transactional data such as users, catalog, playlists, and job states.
+- **MongoDB:** High-throughput document store for raw listening events when selected in deployment configuration.
+- **Neo4j:** Reserved for graph-relational queries in recommendation and network analysis; not a standalone service by default.
+- **Redis:** Transient caching for reconstructible data; never the primary source of truth.
+- **Object Storage:** Stores large audio binaries; PostgreSQL maintains metadata and file references.
+- **Flutter + Drift:** Client playback state, queue, and local offline cache. Clients queue events in a local outbox while offline and sync when online.
 
-Các lựa chọn database trên là ranh giới định hướng. Khi triển khai một service, hãy xác nhận database thực tế đã cấu hình trong repository thay vì tự giả định rằng mọi database đều đã được tích hợp.
+The database selections above are architectural guidelines. When working on a service, always confirm the actual configured database in the repository rather than assuming all databases are active.
 
-## 4. Quy tắc dành cho AI khi tạo/sửa code
+## 4. Guidelines for AI Agents Modifying Code
 
-1. Đọc README này cùng cấu trúc và convention hiện có của repository trước khi sửa code.
-2. Chỉ triển khai nghiệp vụ thuộc service đang làm việc; nếu cần nghiệp vụ của service khác, dùng API/event contract rõ ràng thay vì truy cập trực tiếp database của service đó.
-3. Không tự tạo service mới, database mới, message broker hoặc framework mới nếu chưa được yêu cầu.
-4. Không tự suy đoán API contract, tên bảng, schema, biến môi trường hoặc thư viện đã cài. Kiểm tra code hiện có; nếu chưa được xác định, nêu giả định rõ ràng.
-5. Ưu tiên thay đổi nhỏ, đúng phạm vi; không refactor phần không liên quan.
-6. Xử lý lỗi, timeout, retry và idempotency ở các luồng có thể được gọi lại hoặc đồng bộ offline.
-7. Với listening events, dùng ID duy nhất để chống ghi trùng; không giả định event luôn đến đúng thứ tự.
-8. Với audio jobs, lưu trạng thái job và xử lý retry an toàn; không tải hoặc lưu nội dung từ nguồn không được phép.
-9. Bổ sung hoặc cập nhật test cho hành vi thay đổi.
-10. Nếu yêu cầu làm mờ ranh giới nghiệp vụ hoặc mâu thuẫn với README, hãy nêu điểm chưa rõ trước khi thực hiện thay đổi lớn.
+1. Review this document, existing folder structures, and repository conventions before making changes.
+2. Only implement features within the service's defined domain; if another service's capability is required, use explicit API / event contracts rather than querying its database directly.
+3. Do not introduce new services, databases, message brokers, or frameworks without explicit instructions.
+4. Do not guess API contracts, table names, schemas, environment variables, or dependencies. Verify the existing code; if unspecified, state assumptions explicitly.
+5. Prefer targeted, scoped changes; avoid refactoring unrelated components.
+6. Implement error handling, timeouts, retries, and idempotency for operations subject to retries or offline sync.
+7. Use unique event IDs for deduplication in listening events; do not assume events arrive in strict chronological order.
+8. Safely manage job state transitions and retries for audio jobs; never download or store unauthorized content.
+9. Add or update unit/integration tests for any altered behaviors.
+10. If a request blurs service boundaries or contradicts this document, clarify the requirements before making major changes.
 
-## 5. Những phần chưa mặc định có service riêng
+## 5. Capabilities Without Dedicated Services (Yet)
 
-Các nghiệp vụ sau có thể được triển khai bên trong service hiện có hoặc bổ sung sau khi nhu cầu rõ ràng:
+The following domains may be implemented within existing services or added later once requirements mature:
 
-- **Recommendation:** chưa có service riêng trong danh sách hiện tại. Ban đầu có thể là module độc lập; dữ liệu listening events và audio analysis là đầu vào, không đồng nghĩa hai service đó phải chứa logic recommendation.
-- **AI Talk:** chưa có service riêng trong danh sách hiện tại.
-- **Download:** trước mắt thuộc phạm vi job của `music-audio-service` nếu backend thực sự cần tải file. Nếu Flutter chỉ tải trực tiếp về thiết bị, không cần tạo backend download service riêng.
-- **Graph synchronization:** chỉ bổ sung khi có use case Neo4j cụ thể.
-
+- **Recommendation:** No standalone service currently. Initially a modular component consuming listening events and audio analysis data; these ingestion services do not own recommendation logic.
+- **AI Talk:** No standalone service currently.
+- **Download:** Handled as background jobs within `music-audio-service` if the backend downloads files. If Flutter downloads directly to device storage, a backend download service is not needed.
+- **Graph Synchronization:** Introduced only when concrete Neo4j use cases are established.

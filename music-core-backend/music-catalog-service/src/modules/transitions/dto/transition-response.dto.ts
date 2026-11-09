@@ -4,7 +4,7 @@ export class CurrentTrackTransitionDto {
   @ApiProperty({ example: '2d4e9b6b-4885-4586-a8e8-b2a5f1b880ed' })
   id: string;
 
-  @ApiProperty({ example: 'Trái Tim Bên Lề' })
+  @ApiProperty({ example: 'Midnight City' })
   title: string;
 
   @ApiProperty({ example: 313862 })
@@ -36,22 +36,22 @@ export class NextTrackTransitionDto {
   @ApiProperty({ example: 'cbda8cd0-45ad-4b49-9f22-32767f002302' })
   id: string;
 
-  @ApiProperty({ example: 'Không' })
+  @ApiProperty({ example: 'Get Lucky' })
   title: string;
 
   @ApiProperty({
     nullable: true,
-    example: 'https://cdn.example.com/audio/khong.m4a',
+    example: 'https://cdn.example.com/audio/get-lucky.m4a',
   })
   fileUrl: string | null;
 
   @ApiProperty({
     nullable: true,
-    example: 'https://cdn.example.com/cover/khong.jpg',
+    example: 'https://cdn.example.com/cover/get-lucky.jpg',
   })
   coverImageUrl: string | null;
 
-  @ApiProperty({ type: [String], example: ['Elvis Phương'] })
+  @ApiProperty({ type: [String], example: ['Daft Punk', 'Pharrell Williams'] })
   artists: string[];
 
   @ApiProperty({ example: 245000 })

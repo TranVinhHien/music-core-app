@@ -9,8 +9,8 @@ from mutagen.mp4 import MP4, MP4Cover
 
 class DownloaderService:
     """
-    Dịch vụ tải stream âm thanh từ YouTube / SoundCloud bằng yt-dlp,
-    chuyển đổi audio và gắn metadata + album cover art qua mutagen.
+    Audio stream downloading service via yt-dlp,
+    transcodes audio and embeds metadata + cover art via mutagen.
     """
 
     def __init__(self, download_dir: str = "./downloads"):
@@ -20,7 +20,7 @@ class DownloaderService:
 
     def search_and_download(self, search_query: str, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
-        Tìm kiếm video khớp nhất và tải âm thanh về thư mục downloads.
+        Searches best matching video and downloads audio stream to downloads directory.
         """
         clean_title = metadata.get("title", search_query) if metadata else search_query
         clean_artist = metadata.get("artist", "") if metadata else ""
@@ -45,30 +45,30 @@ class DownloaderService:
             }]
             expected_ext = "mp3"
         else:
-            # Fallback nếu máy chưa cài ffmpeg: tải định dạng m4a / webm trực tiếp
+            # Fallback if ffmpeg is not installed: download m4a / webm directly
             ydl_opts["format"] = "bestaudio[ext=m4a]/bestaudio/best"
-            expected_ext = None  # Sẽ kiểm tra sau khi tải
+            expected_ext = None
 
-        print(f"[Downloader] Đang tìm kiếm và tải nguồn nhạc: {search_query}...")
+        print(f"[Downloader] Searching and downloading audio stream: {search_query}...")
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(f"ytsearch1:{search_query}", download=True)
             if not info or "entries" not in info or len(info["entries"]) == 0:
-                raise RuntimeError(f"Không tìm thấy kết quả tải cho: {search_query}")
+                raise RuntimeError(f"No download results found for: {search_query}")
             
             video_info = info["entries"][0]
             downloaded_file = ydl.prepare_filename(video_info)
 
-        # Xác định file thực tế tạo ra
+        # Resolve actual file created on disk
         final_file_path = None
         if self.has_ffmpeg:
-            # Tên file sau khi ffmpeg convert thành mp3
+            # File name after ffmpeg conversion to mp3
             base, _ = os.path.splitext(downloaded_file)
             final_file_path = f"{base}.mp3"
         else:
             final_file_path = downloaded_file
 
         if not os.path.exists(final_file_path):
-            # Thử tìm file tương ứng trong folder
+            # Attempt to find matching file in folder
             base_name = os.path.basename(target_template).split(".")[0]
             for f in os.listdir(self.download_dir):
                 if f.startswith(base_name):
@@ -76,9 +76,9 @@ class DownloaderService:
                     break
 
         if not final_file_path or not os.path.exists(final_file_path):
-            raise FileNotFoundError(f"File sau khi tải không tồn tại: {final_file_path}")
+            raise FileNotFoundError(f"Downloaded file not found: {final_file_path}")
 
-        # Gắn thẻ metadata nếu có
+        # Embed metadata if provided
         if metadata:
             self.tag_file(final_file_path, metadata)
 
@@ -95,7 +95,7 @@ class DownloaderService:
 
     def tag_file(self, file_path: str, metadata: Dict[str, Any]):
         """
-        Nhúng ID3 tags và Album Art vào file (hỗ trợ MP3 và MP4/M4A).
+        Embeds ID3 tags and Album Art into file (supports MP3 and MP4/M4A).
         """
         ext = os.path.splitext(file_path)[1].lower()
         title = metadata.get("title", "")
@@ -112,11 +112,11 @@ class DownloaderService:
                 if c_resp.status_code == 200:
                     cover_bytes = c_resp.content
             except Exception as e:
-                print(f"[Downloader] Không thể tải ảnh bìa: {e}")
+                print(f"[Downloader] Failed to download cover art: {e}")
 
         if ext == ".mp3":
             try:
-                # Cập nhật thông tin cơ bản
+                # Update basic tags
                 try:
                     audio = EasyID3(file_path)
                 except Exception:
@@ -131,7 +131,7 @@ class DownloaderService:
                 if year: audio["date"] = year
                 audio.save()
 
-                # Gắn ảnh bìa
+                # Attach cover art
                 if cover_bytes:
                     id3 = ID3(file_path)
                     id3.add(APIC(
@@ -142,9 +142,9 @@ class DownloaderService:
                         data=cover_bytes
                     ))
                     id3.save()
-                print(f"[Downloader] Đã gắn ID3 tag và Cover Art vào {file_path}")
+                print(f"[Downloader] Embedded ID3 tag and Cover Art into {file_path}")
             except Exception as e:
-                print(f"[Downloader] Lỗi gắn tag MP3: {e}")
+                print(f"[Downloader] Error tagging MP3: {e}")
 
         elif ext in [".m4a", ".mp4"]:
             try:
@@ -158,6 +158,6 @@ class DownloaderService:
                 if cover_bytes:
                     mp4["covr"] = [MP4Cover(cover_bytes, imageformat=MP4Cover.FORMAT_JPEG)]
                 mp4.save()
-                print(f"[Downloader] Đã gắn MP4 tag và Cover Art vào {file_path}")
+                print(f"[Downloader] Embedded MP4 tag and Cover Art into {file_path}")
             except Exception as e:
-                print(f"[Downloader] Lỗi gắn tag M4A: {e}")
+                print(f"[Downloader] Error tagging M4A: {e}")

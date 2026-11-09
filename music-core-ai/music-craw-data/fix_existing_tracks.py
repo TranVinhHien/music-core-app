@@ -36,10 +36,10 @@ def fix_tracks():
     catalog_base_url = config.get("backend", {}).get("catalog_api_url", "http://localhost:3002/api/v1/catalog").rstrip("/")
 
     if not ffmpeg_exe:
-        console.print("[red]✗ Không tìm thấy FFmpeg để sửa file![/red]")
+        console.print("[red]✗ FFmpeg not found for track repair![/red]")
         return
 
-    console.print(f"[bold cyan]🔧 Bắt đầu sửa lỗi thời lượng audio bằng FFmpeg ({ffmpeg_exe})...[/bold cyan]\n")
+    console.print(f"[bold cyan]🔧 Repairing audio duration issues using FFmpeg ({ffmpeg_exe})...[/bold cyan]\n")
 
     # Fetch catalog track list for mapping
     catalog_tracks = []
@@ -136,9 +136,9 @@ def fix_tracks():
                         timeout=5
                     )
                     if patch_resp.status_code in [200, 204]:
-                        cat_status = f"✓ Đã cập nhật ({track_id[:8]}...)"
+                        cat_status = f"✓ Updated ({track_id[:8]}...)"
                     else:
-                        cat_status = f"Lỗi {patch_resp.status_code}"
+                        cat_status = f"Error {patch_resp.status_code}"
                     break
 
             old_str = f"{int(old_dur_sec//60)}m{int(old_dur_sec%60):02d}s"
@@ -146,10 +146,10 @@ def fix_tracks():
             table.add_row(str(idx), fname[:35] + "...", old_str, new_str, cat_status)
 
         except Exception as e:
-            table.add_row(str(idx), fname[:35] + "...", "Lỗi", str(e)[:20], "Thất bại")
+            table.add_row(str(idx), fname[:35] + "...", "Error", str(e)[:20], "Failed")
 
     console.print(table)
-    console.print("\n[bold green]✓ Đã hoàn tất sửa chữa và chuẩn hóa toàn bộ file âm thanh![/bold green]")
+    console.print("\n[bold green]✓ Finished repairing and normalizing all audio files![/bold green]")
 
 if __name__ == "__main__":
     fix_tracks()

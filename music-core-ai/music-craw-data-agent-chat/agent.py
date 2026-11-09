@@ -17,11 +17,11 @@ console = Console()
 
 class InteractiveMusicAgent:
     """
-    Agent thông minh:
-    - Nhận yêu cầu của người dùng, tự động phân tích và lên kế hoạch (Planning).
-    - Tự động thực thi từng bước trong quy trình:
-      [Tìm kiếm Metadata] -> [Tải & Gắn Tag Audio] -> [Upload S3 Storage] -> [Đăng ký Catalog API].
-    - Tương tác hai chiều, giải thích hành động và báo cáo tiến độ chi tiết.
+    Intelligent Agent:
+    - Parses user goals and performs automated workflow planning.
+    - Executes multi-step ingestion pipelines:
+      [Fetch Metadata] -> [Download & Tag Audio] -> [Upload S3 Storage] -> [Register Catalog API].
+    - Conversational reasoning with live status reporting.
     """
 
     def __init__(self, config_path: str = "config.yaml"):
@@ -34,7 +34,7 @@ class InteractiveMusicAgent:
         self.deployment_name = azure_cfg.get("gpt4o_deployment", "gpt-4o-vision")
 
         if not api_key:
-            console.print("[yellow]⚠️ Cảnh báo: Chưa tìm thấy AZURE_OPENAI_API_KEY. Vui lòng cập nhật config.yaml hoặc biến môi trường.[/yellow]")
+            console.print("[yellow]⚠️ Warning: AZURE_OPENAI_API_KEY not found. Please update config.yaml or environment variables.[/yellow]")
 
         self.client = AzureOpenAI(
             azure_endpoint=endpoint,
@@ -42,7 +42,7 @@ class InteractiveMusicAgent:
             api_version=api_version,
         )
 
-        # Khởi tạo các services hạ tầng
+        # Initialize infrastructure services
         storage_cfg = self.config.get("storage", {})
         download_dir = storage_cfg.get("download_dir", "./downloads")
         self.downloader = DownloaderService(download_dir=download_dir)
@@ -52,27 +52,26 @@ class InteractiveMusicAgent:
         catalog_url = backend_cfg.get("catalog_api_url", "http://localhost:3002/api/v1/catalog")
         self.catalog = CatalogService(base_url=catalog_url)
 
-        # Lịch sử hội thoại
+        # Conversation history
         self.conversation_history: List[Dict[str, Any]] = [
             {
                 "role": "system",
                 "content": (
-                    "Bạn là Trợ lý AI Chuyên gia Crawl và Quản trị Dữ liệu Âm nhạc (Music Ingestion Agent).\n"
-                    "Nhiệm vụ của bạn là nhận yêu cầu của người dùng, phân tích và lên kế hoạch rõ ràng, sau đó điều phối các tools để:\n"
-                    "1. Lên kế hoạch (Plan): Trình bày các bước thực hiện cho người dùng.\n"
-                    "2. Tìm kiếm và cào metadata bài hát chính xác (Tên bài, Ca sĩ, Album, Cover Art, Năm phát hành, Thời lượng).\n"
-                    "3. Tải stream audio từ YouTube/SoundCloud, nhúng ID3 tag chuẩn và Cover Art vào file MP3.\n"
-                    "4. Upload file audio lên hệ thống lưu trữ (S3 / Storage Service) để lấy liên kết lưu trữ công khai (file_url).\n"
-                    "5. Đẩy metadata và file_url vào hệ thống Catalog Microservice (POST /artists, POST /albums, POST /tracks).\n"
-                    "6. Báo cáo kết quả rõ ràng, thân thiện cho người dùng.\n\n"
-                    "QUAN TRỌNG: Với mỗi bài hát cần cào, bạn PHẢI tự động hoàn thành trọn vẹn chuỗi: "
-                    "[Metadata] -> [Download & Tag] -> [Upload S3 Storage] -> [Catalog API]. "
-                    "Hãy luôn giải thích tiến trình và trạng thái các bước."
+                    "You are a Music Ingestion and Catalog Management Assistant.\n"
+                    "Your mission is to understand user requirements, plan steps clearly, and coordinate tools to:\n"
+                    "1. Plan: Present execution steps to the user.\n"
+                    "2. Search and scrape accurate song metadata (Title, Artist, Album, Cover Art, Year, Duration).\n"
+                    "3. Download audio streams, embed ID3 tags and Cover Art into MP3 files.\n"
+                    "4. Upload audio files to storage (S3 / Storage Service) to obtain public URLs.\n"
+                    "5. Sync metadata and URLs into Catalog Microservice (POST /artists, POST /albums, POST /tracks).\n"
+                    "6. Report progress and results clearly to the user.\n\n"
+                    "IMPORTANT: For each song, complete the full pipeline: "
+                    "[Metadata] -> [Download & Tag] -> [Upload S3 Storage] -> [Catalog API]."
                 )
             }
         ]
 
-        # Khởi tạo công cụ (Tools definition)
+        # Initialize tools definition
         self.tools = self._init_tools()
 
     def _load_config(self, config_path: str) -> Dict[str, Any]:
@@ -263,19 +262,19 @@ class InteractiveMusicAgent:
             release_date = args.get("release_date")
             source_url = args.get("source_url")
 
-            console.print(f"[dim]Đang liên kết dữ liệu với Catalog Microservice: '{title}'...[/dim]")
+            console.print(f"[dim]Syncing track to Catalog Microservice: '{title}'...[/dim]")
 
-            # 1. Tìm hoặc tạo Artist
+            # 1. Look up or create Artist
             artist_rec = self.catalog.find_or_create_artist(artist_name, image_url=cover_image_url)
             artist_id = artist_rec.get("id") if artist_rec else None
 
-            # 2. Tìm hoặc tạo Album nếu có
+            # 2. Look up or create Album
             album_id = None
             if album_title:
                 album_rec = self.catalog.find_or_create_album(album_title, artist_id=artist_id, release_date=release_date, cover_image_url=cover_image_url)
                 album_id = album_rec.get("id") if album_rec else None
 
-            # 3. Nguồn track
+            # 3. Track sources
             sources = []
             if source_url:
                 sources.append({
@@ -284,7 +283,7 @@ class InteractiveMusicAgent:
                     "externalUrl": source_url
                 })
 
-            # 4. Tạo Track
+            # 4. Create Track
             track_res = self.catalog.create_track(
                 title=title,
                 file_url=file_url,
@@ -302,9 +301,9 @@ class InteractiveMusicAgent:
             artist_name = args.get("artist_name", "")
             full_query = f"{song_title} {artist_name}".strip()
 
-            console.print(f"\n[bold magenta]🚀 BẮT ĐẦU PIPELINE TRỌN GÓI CHO: {full_query}[/bold magenta]")
+            console.print(f"\n[bold magenta]🚀 STARTING COMPLETE PIPELINE FOR: {full_query}[/bold magenta]")
 
-            # Bước 1: Metadata
+            # Step 1: Metadata
             meta = MetadataService.get_metadata(full_query)
             if not meta:
                 meta = {
@@ -316,15 +315,15 @@ class InteractiveMusicAgent:
                     "duration_ms": 0
                 }
 
-            # Bước 2: Download & Tag
+            # Step 2: Download & Tag
             search_yt = f"{meta['title']} {meta['artist']} Official Audio"
             dl_res = self.downloader.search_and_download(search_yt, meta)
 
-            # Bước 3: Upload Storage
+            # Step 3: Upload Storage
             upload_res = self.storage.upload_file(dl_res["file_path"], folder="tracks")
             file_url = upload_res["url"]
 
-            # Bước 4: Catalog Sync
+            # Step 4: Catalog Sync
             artist_rec = self.catalog.find_or_create_artist(meta["artist"], image_url=meta.get("cover_url"))
             artist_id = artist_rec.get("id") if artist_rec else None
 
@@ -365,7 +364,7 @@ class InteractiveMusicAgent:
 
     def chat(self, user_input: str) -> str:
         """
-        Nhận tương tác từ người dùng, thực hiện chu trình Reasoning -> Tool Calling -> Output.
+        Receives user prompt, executes Reasoning -> Tool Calling -> Output loop.
         """
         self.conversation_history.append({"role": "user", "content": user_input})
 
@@ -388,10 +387,10 @@ class InteractiveMusicAgent:
                 func_name = tool_call.function.name
                 func_args = json.loads(tool_call.function.arguments)
 
-                # Thực thi tool
+                # Execute tool
                 tool_res = self._execute_tool(func_name, func_args)
 
-                # Đưa kết quả tool vào hội thoại
+                # Feed tool output into conversation
                 self.conversation_history.append({
                     "role": "tool",
                     "tool_call_id": tool_call.id,

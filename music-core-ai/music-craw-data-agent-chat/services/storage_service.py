@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 
 class StorageService:
     """
-    Dịch vụ lưu trữ file: Upload audio và ảnh bìa lên AWS S3 (hoặc fallback cục bộ).
+    File storage service: Uploads audio and cover art to AWS S3 (with local fallback).
     """
 
     def __init__(self, config: Dict[str, Any]):
@@ -31,14 +31,14 @@ class StorageService:
                     aws_secret_access_key=self.secret_key
                 )
             except Exception as e:
-                print(f"[StorageService] Không thể khởi tạo S3 Client: {e}")
+                print(f"[StorageService] Failed to initialize S3 Client: {e}")
 
     def upload_file(self, local_path: str, folder: str = "tracks") -> Dict[str, Any]:
         """
-        Upload một file (audio hoặc ảnh) lên Storage và trả về URL truy cập.
+        Uploads a file (audio or image) to storage and returns access URL.
         """
         if not os.path.exists(local_path):
-            raise FileNotFoundError(f"File không tồn tại: {local_path}")
+            raise FileNotFoundError(f"File not found: {local_path}")
 
         file_name = os.path.basename(local_path)
         ext = os.path.splitext(file_name)[1].lower()
@@ -46,12 +46,12 @@ class StorageService:
         if not content_type:
             content_type = "audio/mpeg" if ext == ".mp3" else "application/octet-stream"
 
-        # Đặt tên object key duy nhất tránh trùng lặp
+        # Assign unique object key to avoid collision
         unique_key = f"{folder}/{uuid.uuid4().hex[:8]}_{file_name}"
 
         if self.s3_client and self.bucket:
             try:
-                print(f"[StorageService] Đang upload file lên S3 ({self.bucket}/{unique_key})...")
+                print(f"[StorageService] Uploading file to S3 ({self.bucket}/{unique_key})...")
                 self.s3_client.upload_file(
                     Filename=local_path,
                     Bucket=self.bucket,
@@ -70,9 +70,9 @@ class StorageService:
                     "content_type": content_type
                 }
             except ClientError as e:
-                print(f"[StorageService] Lỗi khi upload lên S3: {e}. Fallback sang Local path.")
+                print(f"[StorageService] S3 upload error: {e}. Falling back to local storage.")
 
-        # Fallback lưu trữ cục bộ
+        # Local storage fallback
         local_url = f"file://{os.path.abspath(local_path)}"
         return {
             "success": True,

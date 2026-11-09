@@ -1,3 +1,7 @@
-Go
-Xử lý file nền, phân tích BPM/key/energy và chuyển mã; phù hợp với worker xử lý song song.
-sử lý tải file
+# Music Audio Service
+
+- **Runtime / Language:** Go
+- **Primary Responsibilities:**
+  - Background audio file processing, BPM / key / energy analysis, and transcoding.
+  - Concurrency-friendly worker architecture for parallel batch jobs.
+  - File download, validation, and storage handling.
